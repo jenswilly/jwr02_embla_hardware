@@ -29,7 +29,7 @@
 *
 */
 
-#include "husky_base/husky_hardware.h"
+#include "embla_hardware/embla_hardware.h"
 #include "controller_manager/controller_manager.h"
 #include "ros/callback_queue.h"
 
@@ -38,71 +38,75 @@
 typedef boost::chrono::steady_clock time_source;
 
 /**
-* Control loop for Husky, not realtime safe
+* Control loop, not realtime safe
 */
-void controlLoop(husky_base::HuskyHardware &husky,
-                 controller_manager::ControllerManager &cm,
-                 time_source::time_point &last_time)
+void controlLoop( embla_hardware::EmblaHardware &embla,
+		  controller_manager::ControllerManager &cm,
+		  time_source::time_point &last_time )
 {
 
-  // Calculate monotonic time difference
-  time_source::time_point this_time = time_source::now();
-  boost::chrono::duration<double> elapsed_duration = this_time - last_time;
-  ros::Duration elapsed(elapsed_duration.count());
-  last_time = this_time;
+	// Calculate monotonic time difference
+	time_source::time_point this_time = time_source::now();
+	boost::chrono::duration<double> elapsed_duration = this_time - last_time;
+	ros::Duration elapsed( elapsed_duration.count());
+	last_time = this_time;
 
-  // Process control loop
-  husky.reportLoopDuration(elapsed);
-  husky.updateJointsFromHardware();
-  cm.update(ros::Time::now(), elapsed);
-  husky.writeCommandsToHardware();
+	// Process control loop
+//	husky.reportLoopDuration( elapsed );
+	embla.updateJointsFromHardware();
+	cm.update( ros::Time::now(), elapsed );
+	embla.writeCommandsToHardware();
 }
 
 /**
 * Diagnostics loop for Husky, not realtime safe
 */
-void diagnosticLoop(husky_base::HuskyHardware &husky)
+/*
+void diagnosticLoop( husky_base::HuskyHardware &husky )
 {
-  husky.updateDiagnostics();
+        husky.updateDiagnostics();
 }
+*/
 
-int main(int argc, char *argv[])
+int main( int argc, char *argv[] )
 {
-  ros::init(argc, argv, "husky_base");
-  ros::NodeHandle nh, private_nh("~");
+	ros::init( argc, argv, "embla_hardware" );
+	ros::NodeHandle nh, private_nh( "~" );
 
-  double control_frequency, diagnostic_frequency;
-  private_nh.param<double>("control_frequency", control_frequency, 10.0);
-  private_nh.param<double>("diagnostic_frequency", diagnostic_frequency, 1.0);
+	double control_frequency, diagnostic_frequency;
+	private_nh.param<double>( "control_frequency", control_frequency, 10.0 );
+	private_nh.param<double>( "diagnostic_frequency", diagnostic_frequency, 1.0 );
 
-  // Initialize robot hardware and link to controller manager
-  husky_base::HuskyHardware husky(nh, private_nh, control_frequency);
-  controller_manager::ControllerManager cm(&husky, nh);
+	// Initialize robot hardware and link to controller manager
+	embla_hardware::EmblaHardware embla( nh, private_nh, control_frequency );
+	controller_manager::ControllerManager cm( &embla, nh );
 
-  // Setup separate queue and single-threaded spinner to process timer callbacks
-  // that interface with Husky hardware - libhorizon_legacy not threadsafe. This
-  // avoids having to lock around hardware access, but precludes realtime safety
-  // in the control loop.
-  ros::CallbackQueue husky_queue;
-  ros::AsyncSpinner husky_spinner(1, &husky_queue);
+	// Setup separate queue and single-threaded spinner to process timer callbacks
+	// that interface with Husky hardware - libhorizon_legacy not threadsafe. This
+	// avoids having to lock around hardware access, but precludes realtime safety
+	// in the control loop.
+	ros::CallbackQueue embla_queue;
+	ros::AsyncSpinner embla_spinner( 1, &embla_queue );
 
-  time_source::time_point last_time = time_source::now();
-  ros::TimerOptions control_timer(
-    ros::Duration(1 / control_frequency),
-    boost::bind(controlLoop, boost::ref(husky), boost::ref(cm), boost::ref(last_time)),
-    &husky_queue);
-  ros::Timer control_loop = nh.createTimer(control_timer);
+	time_source::time_point last_time = time_source::now();
+	ros::TimerOptions control_timer(
+		ros::Duration( 1 / control_frequency ),
+		boost::bind( controlLoop, boost::ref( embla ), boost::ref( cm ), boost::ref( last_time )),
+		&embla_queue );
+	ros::Timer control_loop = nh.createTimer( control_timer );
 
-  ros::TimerOptions diagnostic_timer(
-    ros::Duration(1 / diagnostic_frequency),
-    boost::bind(diagnosticLoop, boost::ref(husky)),
-    &husky_queue);
-  ros::Timer diagnostic_loop = nh.createTimer(diagnostic_timer);
+/*
+        ros::TimerOptions diagnostic_timer(
+                ros::Duration( 1 / diagnostic_frequency ),
+                boost::bind( diagnosticLoop, boost::ref( husky )),
+                &husky_queue );
+        ros::Timer diagnostic_loop = nh.createTimer( diagnostic_timer );
+*/
 
-  husky_spinner.start();
+	embla_spinner.start();
 
-  // Process remainder of ROS callbacks separately, mainly ControlManager related
-  ros::spin();
+	// Process remainder of ROS callbacks separately, mainly ControlManager related
+	ros::spin();
 
-  return 0;
+	return 0;
 }
