@@ -64,11 +64,10 @@ namespace embla_hardware
 
 		void registerControlInterfaces();
 
-		double linearToAngular( const double &travel ) const;
+		double encoderPulsesToAngular( const double &encoder ) const;
+		double angularToEncoderPulses( const double &angle ) const;
 
-		double angularToLinear( const double &angle ) const;
-
-		void limitDifferentialSpeed( double &travel_speed_left, double &travel_speed_right );
+		void limitDifferentialSpeed( double &travel_speed_left, double &travel_speed_right, double maxSpeed ) const;
 
 		ros::NodeHandle nh_, private_nh_;
 
@@ -90,7 +89,7 @@ namespace embla_hardware
 		*/
 
 		// ROS Parameters
-		double wheel_diameter_, max_accel_, max_speed_;
+		double wheel_diameter_, max_accel_, max_speed_, pulsesPerRev_;
 
 		double polling_timeout_;
 
@@ -99,11 +98,11 @@ namespace embla_hardware
 		*/
 		struct Joint
 		{
-			double position;
-			double position_offset;
-			double velocity;
-			double effort;
-			double velocity_command;
+			double position;            // In radians
+			double position_offset;     // Radians
+			double velocity;            // Radians/sec
+			double effort;              // (not used)
+			double velocity_command;    // ?
 
 			Joint() :
 				position( 0 ), velocity( 0 ), effort( 0 ), velocity_command( 0 )

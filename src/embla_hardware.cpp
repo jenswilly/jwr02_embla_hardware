@@ -25,10 +25,12 @@
 #include "embla_hardware/embla_hardware.h"
 #include "roboclaw/roboclaw.h"
 #include <boost/assign/list_of.hpp>
+#include <math.h>
 
 namespace
 {
 	const uint8_t LEFT = 0, RIGHT = 1;
+	const uint8_t ROBOCLAW_ADDRESS = 128;
 };
 
 namespace embla_hardware
@@ -46,10 +48,11 @@ namespace embla_hardware
 	safety_status_task_(husky_status_msg_),
 	software_status_task_(husky_status_msg_, target_control_freq) */
 	{
-		private_nh_.param<double>( "wheel_diameter", wheel_diameter_, 0.3302 );
-		private_nh_.param<double>( "max_accel", max_accel_, 5.0 );
-		private_nh_.param<double>( "max_speed", max_speed_, 1.0 );
+		private_nh_.param<double>( "wheel_diameter", wheel_diameter_, 0.08 );
+		private_nh_.param<double>( "max_accel", max_accel_, 2.0 );
+		private_nh_.param<double>( "max_speed", max_speed_, 1.8 );    // Note: this is in m/s and is used _after_ converting from rad/s -> m/s
 		private_nh_.param<double>( "polling_timeout_", polling_timeout_, 10.0 );
+		private_nh_.param<double>( "pulses_per_rev", pulsesPerRev_, 990 );    // 990 pulses per rev. is default for the Embla motors
 
 		std::string port;
 		private_nh_.param<std::string>( "port", port, "/dev/prolific" );
@@ -66,21 +69,16 @@ namespace embla_hardware
 	*/
 	void EmblaHardware::resetTravelOffset()
 	{
-		uint32_t enc1, enc2;
-		/*
-		if( )
-		horizon_legacy::Channel<clearpath::DataEncoders>::Ptr enc = horizon_legacy::Channel<clearpath::DataEncoders>::requestData(
-		polling_timeout_);
-		if (enc)
+		uint32_t encoders[ 2 ];  // Only two encoders. We'll %2 to update all fours joints since order is front_left, front_right, rear_left, rear_right.
+		if( roboclaw_.ReadEncoders( ROBOCLAW_ADDRESS, encoders[0], encoders[1] ))
 		{
-		joints_[ LEFT ].position_offset = linearToAngular(enc->getTravel(i % 2));
-		joints_[ RIGHT ].position_offset = linearToAngular(enc->getTravel(i % 2));
+			for( int i = 0; i < 4; i++ )
+				joints_[ i ].position_offset = encoderPulsesToAngular( encoders[ i % 2 ] );
 		}
 		else
 		{
-		ROS_ERROR("Could not get encoder data to calibrate travel offset");
+			ROS_ERROR( "Could not get encoder data to calibrate travel offset" );
 		}
-		*/
 	}
 
 	/**
@@ -89,8 +87,7 @@ namespace embla_hardware
 	/*
 	void EmblaHardware::initializeDiagnostics()
 	{
-	  horizon_legacy::Channel<clearpath::DataPlatformInfo>::Ptr info =
-	    horizon_legacy::Channel<clearpath::DataPlatformInfo>::requestData(polling_timeout_);
+	  horizon_legacy::Channel<clearpath::DataPlatformInfo>::Ptr info = horizon_legacy::Channel<clearpath::DataPlatformInfo>::requestData(polling_timeout_);
 	  std::ostringstream hardware_id_stream;
 	  hardware_id_stream << "Husky " << info->getModel() << "-" << info->getSerial();
 
@@ -113,13 +110,15 @@ namespace embla_hardware
 						    ( "front_right_wheel" ) ( "rear_left_wheel" ) ( "rear_right_wheel" );
 		for( unsigned int i = 0; i < joint_names.size(); i++ )
 		{
+			// Create and register joint state (output to controller)
 			hardware_interface::JointStateHandle joint_state_handle( joint_names[i],
-										 &joints_[i].position, &joints_[i].velocity,
+										 &joints_[i].position,
+										 &joints_[i].velocity,
 										 &joints_[i].effort );
 			joint_state_interface_.registerHandle( joint_state_handle );
 
-			hardware_interface::JointHandle joint_handle(
-				joint_state_handle, &joints_[i].velocity_command );
+			// Register velocity joint (input from controller)
+			hardware_interface::JointHandle joint_handle( joint_state_handle, &joints_[i].velocity_command );
 			velocity_joint_interface_.registerHandle( joint_handle );
 		}
 		registerInterface( &joint_state_interface_ );
@@ -190,16 +189,16 @@ namespace embla_hardware
 	}
 
 	/**
-	* Get latest velocity commands from ros_control via joint structure, and send to MCU
+	* Get latest velocity commands from ros_control via joint structure, and send to EMCU
 	*/
 	void EmblaHardware::writeCommandsToHardware()
 	{
-		double diff_speed_left = angularToLinear( joints_[LEFT].velocity_command );
-		double diff_speed_right = angularToLinear( joints_[RIGHT].velocity_command );
+		double speedLeft = angularToEncoderPulses( joints_[LEFT].velocity_command );
+		double speedRight = angularToEncoderPulses( joints_[RIGHT].velocity_command );
 
-		limitDifferentialSpeed( diff_speed_left, diff_speed_right );
+		limitDifferentialSpeed( speedLeft, speedRight, max_speed_ * pulsesPerRev_ );
 
-//		horizon_legacy::controlSpeed( diff_speed_left, diff_speed_right, max_accel_, max_accel_ );
+		roboclaw_.SpeedAccelM1M2( ROBOCLAW_ADDRESS, max_accel_ * pulsesPerRev_, speedLeft, speedRight );
 	}
 
 	/**
@@ -213,32 +212,41 @@ namespace embla_hardware
 	/**
 	* Scale left and right speed outputs to maintain ros_control's desired trajectory without saturating the outputs
 	*/
-	void EmblaHardware::limitDifferentialSpeed( double &diff_speed_left, double &diff_speed_right )
+	/**
+	 * @brief Scale left and right speed outputs to maintain ros_control's desired trajectory. Units are not specified; use same units for all parameters.
+	 * @param diff_speed_left  Left speed.
+	 * @param diff_speed_right  Right speed.
+	 * @param maxSpeed  The maximum allowable speed in the same units as left/right speeds.
+	 */
+	void EmblaHardware::limitDifferentialSpeed( double &diff_speed_left, double &diff_speed_right, double maxSpeed ) const
 	{
 		double large_speed = std::max( std::abs( diff_speed_left ), std::abs( diff_speed_right ));
 
-		if( large_speed > max_speed_ )
+		if( large_speed > maxSpeed )
 		{
-			diff_speed_left *= max_speed_ / large_speed;
-			diff_speed_right *= max_speed_ / large_speed;
+			diff_speed_left *= maxSpeed / large_speed;
+			diff_speed_right *= maxSpeed / large_speed;
 		}
 	}
 
 	/**
-	* Husky reports travel in metres, need radians for ros_control RobotHW
-	*/
-	double EmblaHardware::linearToAngular( const double &travel ) const
+	 * @brief Converts encoder pulses to radians.
+	 * @param encoder Encoder value in pulses.
+	 * @return Returns the corresponding radian value.
+	 */
+	double EmblaHardware::encoderPulsesToAngular( const double &encoder ) const
 	{
-		return travel / wheel_diameter_ * 2;
+		return encoder / pulsesPerRev_ * 2 * M_PI;
 	}
 
 	/**
-	* RobotHW provides velocity command in rad/s, Husky needs m/s,
-	*/
-	double EmblaHardware::angularToLinear( const double &angle ) const
+	 * @brief Converts radians to encoder pulses.
+	 * @param angle Number of radians.
+	 * @return The corresponding number of encoder pulses.
+	 */
+	double EmblaHardware::angularToEncoderPulses( const double &angle ) const
 	{
-		return angle * wheel_diameter_ / 2;
+		return angle / (2 * M_PI) * pulsesPerRev_;
 	}
-
 
 }  // namespace embla_hardware
