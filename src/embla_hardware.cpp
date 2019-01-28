@@ -138,8 +138,8 @@ namespace embla_hardware
 	*/
 
 	/**
-	* Pull latest speed and travel measurements from MCU, and store in joint structure for ros_control
-	*/
+	 * @brief Read function: Pull latest speed and travel measurements from EMCU, and update joint structure for ros_control
+	 */
 	void EmblaHardware::updateJointsFromHardware()
 	{
 
@@ -189,8 +189,8 @@ namespace embla_hardware
 	}
 
 	/**
-	* Get latest velocity commands from ros_control via joint structure, and send to EMCU
-	*/
+	 * @brief Write function: Get latest velocity commands from ros_control from joint structure's command, and send to EMCU.
+	 */
 	void EmblaHardware::writeCommandsToHardware()
 	{
 		double speedLeft = angularToEncoderPulses( joints_[LEFT].velocity_command );
@@ -209,9 +209,6 @@ namespace embla_hardware
 		// software_status_task_.updateControlFrequency( 1 / duration.toSec());
 	}
 
-	/**
-	* Scale left and right speed outputs to maintain ros_control's desired trajectory without saturating the outputs
-	*/
 	/**
 	 * @brief Scale left and right speed outputs to maintain ros_control's desired trajectory. Units are not specified; use same units for all parameters.
 	 * @param diff_speed_left  Left speed.
