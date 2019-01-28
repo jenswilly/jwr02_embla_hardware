@@ -1,35 +1,29 @@
-/**
+/*
+* Copyright 2019 Jens Willy Johannsen <jens@jwrobotics.com>, JW Robotics
 *
-*  \author     Paul Bovbel <pbovbel@clearpathrobotics.com>
-*  \copyright  Copyright (c) 2014-2015, Clearpath Robotics, Inc.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 *
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*     * Redistributions of source code must retain the above copyright
-*       notice, this list of conditions and the following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright
-*       notice, this list of conditions and the following disclaimer in the
-*       documentation and/or other materials provided with the distribution.
-*     * Neither the name of Clearpath Robotics, Inc. nor the
-*       names of its contributors may be used to endorse or promote products
-*       derived from this software without specific prior written permission.
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
 *
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL CLEARPATH ROBOTICS, INC. BE LIABLE FOR ANY
-* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+* THE SOFTWARE.
 *
-* Please send comments, questions, or patches to code@clearpathrobotics.com
-*
+* JWR-01 Embla Hardware driver/controller
 */
 
-#include "husky_base/husky_hardware.h"
+#include "embla_hardware/embla_hardware.h"
+#include "roboclaw/roboclaw.h"
 #include <boost/assign/list_of.hpp>
 
 namespace
@@ -37,20 +31,20 @@ namespace
   const uint8_t LEFT = 0, RIGHT = 1;
 };
 
-namespace husky_base
+namespace embla_hardware
 {
 
   /**
   * Initialize Husky hardware
   */
-  HuskyHardware::HuskyHardware(ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq)
-    :
+  EmblaHardware::EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq ) :
     nh_(nh),
     private_nh_(private_nh),
+	roboclaw_( "/dev/roboclaw", 460800 ) /*,
     system_status_task_(husky_status_msg_),
     power_status_task_(husky_status_msg_),
     safety_status_task_(husky_status_msg_),
-    software_status_task_(husky_status_msg_, target_control_freq)
+    software_status_task_(husky_status_msg_, target_control_freq) */
   {
     private_nh_.param<double>("wheel_diameter", wheel_diameter_, 0.3302);
     private_nh_.param<double>("max_accel", max_accel_, 5.0);
@@ -60,26 +54,26 @@ namespace husky_base
     std::string port;
     private_nh_.param<std::string>("port", port, "/dev/prolific");
 
-    horizon_legacy::connect(port);
-    horizon_legacy::configureLimits(max_speed_, max_accel_);
+//    horizon_legacy::connect(port);
+//    horizon_legacy::configureLimits(max_speed_, max_accel_);
     resetTravelOffset();
-    initializeDiagnostics();
+//    initializeDiagnostics();
     registerControlInterfaces();
   }
 
   /**
   * Get current encoder travel offsets from MCU and bias future encoder readings against them
   */
-  void HuskyHardware::resetTravelOffset()
+  void EmblaHardware::resetTravelOffset()
   {
+	  uint32_t enc1, enc2;
+	  if( )
     horizon_legacy::Channel<clearpath::DataEncoders>::Ptr enc = horizon_legacy::Channel<clearpath::DataEncoders>::requestData(
       polling_timeout_);
     if (enc)
     {
-      for (int i = 0; i < 4; i++)
-      {
-        joints_[i].position_offset = linearToAngular(enc->getTravel(i % 2));
-      }
+        joints_[ LEFT ].position_offset = linearToAngular(enc->getTravel(i % 2));
+        joints_[ RIGHT ].position_offset = linearToAngular(enc->getTravel(i % 2));
     }
     else
     {
@@ -90,7 +84,8 @@ namespace husky_base
   /**
   * Register diagnostic tasks with updater class
   */
-  void HuskyHardware::initializeDiagnostics()
+  /*
+  void EmblaHardware::initializeDiagnostics()
   {
     horizon_legacy::Channel<clearpath::DataPlatformInfo>::Ptr info =
       horizon_legacy::Channel<clearpath::DataPlatformInfo>::requestData(polling_timeout_);
@@ -104,12 +99,13 @@ namespace husky_base
     diagnostic_updater_.add(software_status_task_);
     diagnostic_publisher_ = nh_.advertise<husky_msgs::HuskyStatus>("status", 10);
   }
+  */
 
 
   /**
   * Register interfaces with the RobotHW interface manager, allowing ros_control operation
   */
-  void HuskyHardware::registerControlInterfaces()
+  void EmblaHardware::registerControlInterfaces()
   {
     ros::V_string joint_names = boost::assign::list_of("front_left_wheel")
       ("front_right_wheel")("rear_left_wheel")("rear_right_wheel");
@@ -131,17 +127,19 @@ namespace husky_base
   /**
   * External hook to trigger diagnostic update
   */
-  void HuskyHardware::updateDiagnostics()
+  /*
+  void EmblaHardware::updateDiagnostics()
   {
     diagnostic_updater_.force_update();
     husky_status_msg_.header.stamp = ros::Time::now();
     diagnostic_publisher_.publish(husky_status_msg_);
   }
+  */
 
   /**
   * Pull latest speed and travel measurements from MCU, and store in joint structure for ros_control
   */
-  void HuskyHardware::updateJointsFromHardware()
+  void EmblaHardware::updateJointsFromHardware()
   {
 
     horizon_legacy::Channel<clearpath::DataEncoders>::Ptr enc = horizon_legacy::Channel<clearpath::DataEncoders>::requestData(
@@ -189,7 +187,7 @@ namespace husky_base
   /**
   * Get latest velocity commands from ros_control via joint structure, and send to MCU
   */
-  void HuskyHardware::writeCommandsToHardware()
+  void EmblaHardware::writeCommandsToHardware()
   {
     double diff_speed_left = angularToLinear(joints_[LEFT].velocity_command);
     double diff_speed_right = angularToLinear(joints_[RIGHT].velocity_command);
@@ -202,7 +200,7 @@ namespace husky_base
   /**
   * Update diagnostics with control loop timing information
   */
-  void HuskyHardware::reportLoopDuration(const ros::Duration &duration)
+  void EmblaHardware::reportLoopDuration(const ros::Duration &duration)
   {
     software_status_task_.updateControlFrequency(1 / duration.toSec());
   }
@@ -210,7 +208,7 @@ namespace husky_base
   /**
   * Scale left and right speed outputs to maintain ros_control's desired trajectory without saturating the outputs
   */
-  void HuskyHardware::limitDifferentialSpeed(double &diff_speed_left, double &diff_speed_right)
+  void EmblaHardware::limitDifferentialSpeed(double &diff_speed_left, double &diff_speed_right)
   {
     double large_speed = std::max(std::abs(diff_speed_left), std::abs(diff_speed_right));
 
@@ -224,7 +222,7 @@ namespace husky_base
   /**
   * Husky reports travel in metres, need radians for ros_control RobotHW
   */
-  double HuskyHardware::linearToAngular(const double &travel) const
+  double EmblaHardware::linearToAngular(const double &travel) const
   {
     return travel / wheel_diameter_ * 2;
   }
@@ -232,10 +230,10 @@ namespace husky_base
   /**
   * RobotHW provides velocity command in rad/s, Husky needs m/s,
   */
-  double HuskyHardware::angularToLinear(const double &angle) const
+  double EmblaHardware::angularToLinear(const double &angle) const
   {
     return angle * wheel_diameter_ / 2;
   }
 
 
-}  // namespace husky_base
+}  // namespace embla_hardware
