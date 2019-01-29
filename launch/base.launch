@@ -45,7 +45,7 @@
 	<node pkg="embla_controller" type="diagnostics_led" name="diagnostics_led" output="screen"/>
 	<!-- ^^ old stuff ­­­| new stuff vv  -->
 
-	<!-- Husky harware driver -->
+	<!-- Harware driver -->
 	<node pkg="embla_hardware" type="embla_hardware_node" name="embla_hardware_node">
 		<rosparam subst_value="true">
             control_frequency: 10.0

@@ -106,8 +106,8 @@ namespace embla_hardware
 	*/
 	void EmblaHardware::registerControlInterfaces()
 	{
-		ros::V_string joint_names = boost::assign::list_of( "front_left_wheel" )
-						    ( "front_right_wheel" ) ( "rear_left_wheel" ) ( "rear_right_wheel" );
+		ros::V_string joint_names = boost::assign::list_of( "left_front_wheel_joint" )
+						    ( "right_front_wheel_joint" ) ( "left_rear_wheel_joint" ) ( "right_rear_wheel_joint" );
 		for( unsigned int i = 0; i < joint_names.size(); i++ )
 		{
 			// Create and register joint state (output to controller)
