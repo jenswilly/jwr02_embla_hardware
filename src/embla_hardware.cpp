@@ -142,6 +142,31 @@ namespace embla_hardware
 	 */
 	void EmblaHardware::updateJointsFromHardware()
 	{
+		uint32_t encoders[ 2 ];  // Only two encoders. We'll %2 to update all fours joints since order is front_left, front_right, rear_left, rear_right.
+	 	if( roboclaw_.ReadEncoders( ROBOCLAW_ADDRESS, encoders[0], encoders[1] ))
+		{
+        	ROS_DEBUG_STREAM( "Received encoder information (pulses) L:" << encoders[ LEFT ) << " R:" << encoders[ RIGHT ] );
+			for( int i = 0; i < 4; i++ ) {
+				double delta = encoderPulsesToAngular( encoders[ i % 2 ] ) - joints_[ i ].position - joints_[ i ].position_offset;
+
+				// 1.0 radians delta is deemed ok. Anything larger that that is "suspiciously large" and might be from encoder rollover
+				if( std::abs( delta ) < 1.0 )
+					joints_[ i ].position += delta;
+				else
+				{
+					// Suspicious! Drop this measurement and only update the offset for subsequent readings
+					joints_[i].position_offset += delta;
+					ROS_DEBUG( "Dropping overflow measurement from encoder" );				
+				}
+		}
+
+		uint32_t speeds[ 2 ];
+		if( roboclaw_.ReadISpeeds( ROBOCLAW_ADDRESS, speeds[0], speeds[1] ))
+		{
+        	ROS_DEBUG_STREAM( "Received speed information (pulses/sec) L:" << speeds[ LEFT ) << " R:" << speeds[ RIGHT ] );
+			for( int i = 0; i < 4; i++ )
+				joints_[ i ].velocity = encoderPulsesToAngular( speeds[ i % 2 ] );
+		}
 
 		/*
 		        horizon_legacy::Channel<clearpath::DataEncoders>::Ptr enc = horizon_legacy::Channel<clearpath::DataEncoders>::requestData(
