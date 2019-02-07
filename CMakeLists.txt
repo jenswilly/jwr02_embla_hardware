@@ -22,7 +22,7 @@ include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_compile_options(-std=c++11)
 
-add_library(roboclaw src/roboclaw/roboclaw.cpp)
+add_library(roboclaw src/roboclaw/roboclaw_driver.cpp src/roboclaw/TimeoutSerial.cpp)
 
 add_executable(embla_hardware_node
   src/embla_hardware_node.cpp

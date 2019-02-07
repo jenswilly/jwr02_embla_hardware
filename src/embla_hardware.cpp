@@ -26,6 +26,7 @@
 #include "roboclaw/roboclaw_driver.h"
 #include <boost/assign/list_of.hpp>
 #include <math.h>
+#include <string>
 
 namespace
 {
@@ -130,9 +131,9 @@ namespace embla_hardware
 	void EmblaHardware::updateJointsFromHardware()
 	{
 		std::pair<int, int> encoders = roboclaw_.get_encoders( ROBOCLAW_ADDRESS );
-        ROS_INFO( "Received encoder information (pulses) L: %d R: %d", encoders.first, encoders.second );
+		ROS_INFO( "Received encoder information (pulses) L: %d R: %d", encoders.first, encoders.second );
 
-		for( int i = 0; i < 4; i++ ) 
+		for( int i = 0; i < 4; i++ )
 		{
 			double delta = encoderPulsesToAngular( (i % 2 == 0 ? encoders.first : encoders.second) ) - joints_[ i ].position - joints_[ i ].position_offset;
 
@@ -143,18 +144,14 @@ namespace embla_hardware
 			{
 				// Suspicious! Drop this measurement and only update the offset for subsequent readings
 				joints_[i].position_offset += delta;
-				ROS_DEBUG( "Dropping overflow measurement from encoder" );				
+				ROS_DEBUG( "Dropping overflow measurement from encoder" );
 			}
 		}
 
 		std::pair<int, int> speeds = roboclaw_.get_velocity( ROBOCLAW_ADDRESS );
-		uint32_t speeds[ 2 ];
-		if( roboclaw_.ReadISpeeds( ROBOCLAW_ADDRESS, speeds[0], speeds[1] ))
-		{
-        	ROS_INFO( "Received speed information (pulses/sec) L: %d R: %d", speeds.first, speeds.second );
-			for( int i = 0; i < 4; i++ )
-				joints_[ i ].velocity = encoderPulsesToAngular( (i % 2 == 0 ? speeds.first : speeds.second) );
-		}
+		ROS_INFO( "Received speed information (pulses/sec) L: %d R: %d", speeds.first, speeds.second );
+		for( int i = 0; i < 4; i++ )
+			joints_[ i ].velocity = encoderPulsesToAngular( (i % 2 == 0 ? speeds.first : speeds.second) );
 	}
 
 	/**
@@ -170,14 +167,14 @@ namespace embla_hardware
 		// TEMP: if left > 0, we write hardcoded values for testing. If not, we write 0,0
 		if( speedLeft > 0 )
 		{
-			roboclaw_.set_velocity( ROBOCLAW_ADDRESS, (500, 0) );
-				ROS_WARN( "Roboclaw target speed: %d/%d. DEBUG Writing to Roboclaw. M1/M2: 500/0", (int)speedLeft, (int)speedRight );
+			roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>( 500, 0 ) );
+			ROS_WARN( "Roboclaw target speed: %d/%d. DEBUG Writing to Roboclaw. M1/M2: 500/0", (int)speedLeft, (int)speedRight );
 		}
 		else
 		{
-				ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
-				roboclaw_.set_velocity( ROBOCLAW_ADDRESS, (0, 0) );
-		//		roboclaw_.set_velocity( ROBOCLAW_ADDRESS, (speedLeft, speedRight) );
+			ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
+			roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>( 0, 0 ) );
+			//		roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>(speedLeft, speedRight) );
 		}
 	}
 
