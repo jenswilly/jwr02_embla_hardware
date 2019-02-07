@@ -43,13 +43,22 @@ namespace embla_hardware
 	EmblaHardware::EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq ) :
 		nh_( nh ),
 		private_nh_( private_nh ),
-		roboclaw_( "/dev/ttyACM0", 115200 )
+		roboclaw_( "/dev/ttyACM0", 460800 )
 	{
 		private_nh_.param<double>( "wheel_diameter", wheel_diameter_, 0.08 );
 		private_nh_.param<double>( "max_accel", max_accel_, 2.0 );
 		private_nh_.param<double>( "max_speed", max_speed_, 1.8 );    // Note: this is in m/s and is used _after_ converting from rad/s -> m/s
 		private_nh_.param<double>( "polling_timeout_", polling_timeout_, 10.0 );
 		private_nh_.param<double>( "pulses_per_rev", pulsesPerRev_, 990 );    // 990 pulses per rev. is default for the Embla motors
+
+		// Wait until Roboclaw driver is ready
+		if( !roboclaw_.serial->isOpen() )
+		{
+			ROS_WARN( "Roboclaw port not open - waiting" );
+			while( !roboclaw_.serial->isOpen() )
+				;
+		}
+		ROS_WARN( "Roboclaw open" );
 
 		resetTravelOffset();
 		registerControlInterfaces();
@@ -132,6 +141,7 @@ namespace embla_hardware
 	{
 		std::pair<int, int> encoders = roboclaw_.get_encoders( ROBOCLAW_ADDRESS );
 		ROS_INFO( "Received encoder information (pulses) L: %d R: %d", encoders.first, encoders.second );
+// --> After this, we get a "terminate called after throwing an instance of 'timeout_exception' what():  Timeout expired" exception. Only one roboclaw command can be sent. But .set_velocity() works...
 
 		for( int i = 0; i < 4; i++ )
 		{

@@ -53,8 +53,10 @@ namespace roboclaw {
         static unsigned char BASE_ADDRESS;
         static unsigned int DEFAULT_BAUDRATE;
 
-    private:
         std::shared_ptr<TimeoutSerial> serial;
+
+    private:
+
 
         boost::asio::io_service io;
 
