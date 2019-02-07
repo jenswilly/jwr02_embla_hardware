@@ -139,29 +139,36 @@ namespace embla_hardware
 	 */
 	void EmblaHardware::updateJointsFromHardware()
 	{
-		std::pair<int, int> encoders = roboclaw_.get_encoders( ROBOCLAW_ADDRESS );
-		ROS_INFO( "Received encoder information (pulses) L: %d R: %d", encoders.first, encoders.second );
-// --> After this, we get a "terminate called after throwing an instance of 'timeout_exception' what():  Timeout expired" exception. Only one roboclaw command can be sent. But .set_velocity() works...
+		try {
+			std::pair<int, int> encoders = roboclaw_.get_encoders( ROBOCLAW_ADDRESS );
+			ROS_INFO( "Received encoder information (pulses) L: %d R: %d", encoders.first, encoders.second );
+	// --> After this, we get a "terminate called after throwing an instance of 'timeout_exception' what():  Timeout expired" exception. Only one roboclaw command can be sent. But .set_velocity() works...
 
-		for( int i = 0; i < 4; i++ )
-		{
-			double delta = encoderPulsesToAngular( (i % 2 == 0 ? encoders.first : encoders.second) ) - joints_[ i ].position - joints_[ i ].position_offset;
-
-			// 1.0 radians delta is deemed ok. Anything larger that that is "suspiciously large" and might be from encoder rollover
-			if( std::abs( delta ) < 1.0 )
-				joints_[ i ].position += delta;
-			else
+			for( int i = 0; i < 4; i++ )
 			{
-				// Suspicious! Drop this measurement and only update the offset for subsequent readings
-				joints_[i].position_offset += delta;
-				ROS_DEBUG( "Dropping overflow measurement from encoder" );
-			}
-		}
+				double delta = encoderPulsesToAngular( (i % 2 == 0 ? encoders.first : encoders.second) ) - joints_[ i ].position - joints_[ i ].position_offset;
 
-		std::pair<int, int> speeds = roboclaw_.get_velocity( ROBOCLAW_ADDRESS );
-		ROS_INFO( "Received speed information (pulses/sec) L: %d R: %d", speeds.first, speeds.second );
-		for( int i = 0; i < 4; i++ )
-			joints_[ i ].velocity = encoderPulsesToAngular( (i % 2 == 0 ? speeds.first : speeds.second) );
+				// 1.0 radians delta is deemed ok. Anything larger that that is "suspiciously large" and might be from encoder rollover
+				if( std::abs( delta ) < 1.0 )
+					joints_[ i ].position += delta;
+				else
+				{
+					// Suspicious! Drop this measurement and only update the offset for subsequent readings
+					joints_[i].position_offset += delta;
+					ROS_DEBUG( "Dropping overflow measurement from encoder" );
+				}
+			}
+
+			std::pair<int, int> speeds = roboclaw_.get_velocity( ROBOCLAW_ADDRESS );
+			ROS_INFO( "Received speed information (pulses/sec) L: %d R: %d", speeds.first, speeds.second );
+			for( int i = 0; i < 4; i++ )
+				joints_[ i ].velocity = encoderPulsesToAngular( (i % 2 == 0 ? speeds.first : speeds.second) );
+
+		} catch( timeout_exception ex ) {
+			ROS_ERROR_STREAM( "Roboclaw timeout error in updateJointsFromHardware: " << ex.what() );
+			throw ex;
+		}
+	
 	}
 
 	/**

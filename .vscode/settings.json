@@ -1,0 +1,12 @@
+{
+	"files.associations": {
+		"sstream": "cpp",
+		"stdexcept": "cpp",
+		"exception": "cpp",
+		"__debug": "cpp",
+		"functional": "cpp",
+		"memory": "cpp",
+		"new": "cpp",
+		"typeinfo": "cpp"
+	}
+}

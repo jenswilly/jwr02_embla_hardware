@@ -26,6 +26,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/bind.hpp>
 #include <boost/array.hpp>
+#include <sstream>
 
 namespace roboclaw {
 
@@ -106,14 +107,23 @@ namespace roboclaw {
 
 		std::vector<char> response_vector;
 
-		response_vector = serial->read( want_bytes );
+		try {
+			response_vector = serial->read( want_bytes );
+		} catch( timeout_exception ex ) {
+			std::ostreamstring description;
+			description << "Timeout reading from RoboClaw: serial->read (" << ex.what() << "). Cmd = " << (int)command;
+			throw timeout_exception( description.str() );		
+		}
 
 		size_t bytes_received = response_vector.size();
 
 		unsigned char* response = (unsigned char*) &response_vector[0];
 
-		if( bytes_received != want_bytes )
-			throw timeout_exception( "Timeout reading from RoboClaw" );
+		if( bytes_received != want_bytes ) {
+			std::ostreamstring description;
+			description << "Timeout reading from RoboClaw: bytes_received != want_bytes. Cmd = " << (int)command;
+			throw timeout_exception( description.str() );
+		}
 
 		// Check CRC
 		if( rx_crc ) {
