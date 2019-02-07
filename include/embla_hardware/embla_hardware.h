@@ -34,7 +34,7 @@
 #include "sensor_msgs/JointState.h"
 // #include "husky_msgs/HuskyStatus.h"
 #include <string>
-#include "roboclaw/roboclaw.h"
+#include "roboclaw/roboclaw_driver.h"
 
 namespace embla_hardware
 {
@@ -71,7 +71,7 @@ namespace embla_hardware
 
 		ros::NodeHandle nh_, private_nh_;
 
-		Roboclaw roboclaw_;
+		roboclaw::driver roboclaw_;
 
 		// ROS Control interfaces
 		hardware_interface::JointStateInterface joint_state_interface_;
