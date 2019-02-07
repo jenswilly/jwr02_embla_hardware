@@ -146,7 +146,8 @@ namespace embla_hardware
 	 	if( roboclaw_.ReadEncoders( ROBOCLAW_ADDRESS, encoders[0], encoders[1] ))
 		{
         	ROS_DEBUG_STREAM( "Received encoder information (pulses) L:" << encoders[ LEFT ] << " R:" << encoders[ RIGHT ] );
-			for( int i = 0; i < 4; i++ ) {
+			for( int i = 0; i < 4; i++ ) 
+			{
 				double delta = encoderPulsesToAngular( encoders[ i % 2 ] ) - joints_[ i ].position - joints_[ i ].position_offset;
 
 				// 1.0 radians delta is deemed ok. Anything larger that that is "suspiciously large" and might be from encoder rollover
@@ -158,6 +159,7 @@ namespace embla_hardware
 					joints_[i].position_offset += delta;
 					ROS_DEBUG( "Dropping overflow measurement from encoder" );				
 				}
+			}
 		}
 
 		uint32_t speeds[ 2 ];
@@ -167,50 +169,6 @@ namespace embla_hardware
 			for( int i = 0; i < 4; i++ )
 				joints_[ i ].velocity = encoderPulsesToAngular( speeds[ i % 2 ] );
 		}
-
-		/*
-		        horizon_legacy::Channel<clearpath::DataEncoders>::Ptr enc = horizon_legacy::Channel<clearpath::DataEncoders>::requestData(
-		                polling_timeout_ );
-		        if( enc )
-		        {
-		                ROS_DEBUG_STREAM( "Received travel information (L:" << enc->getTravel( LEFT ) << " R:" << enc->getTravel( RIGHT ) << ")" );
-		                for( int i = 0; i < 4; i++ )
-		                {
-		                        double delta = linearToAngular( enc->getTravel( i % 2 )) - joints_[i].position - joints_[i].position_offset;
-
-		                        // detect suspiciously large readings, possibly from encoder rollover
-		                        if( std::abs( delta ) < 1.0 )
-		                        {
-		                                joints_[i].position += delta;
-		                        }
-		                        else
-		                        {
-		                                // suspicious! drop this measurement and update the offset for subsequent readings
-		                                joints_[i].position_offset += delta;
-		                                ROS_DEBUG( "Dropping overflow measurement from encoder" );
-		                        }
-		                }
-
-		        }
-
-		        horizon_legacy::Channel<clearpath::DataDifferentialSpeed>::Ptr speed = horizon_legacy::Channel<clearpath::DataDifferentialSpeed>::requestData(
-		                polling_timeout_ );
-		        if( speed )
-		        {
-		                ROS_DEBUG_STREAM( "Received linear speed information (L:" << speed->getLeftSpeed() << " R:" << speed->getRightSpeed() << ")" );
-		                for( int i = 0; i < 4; i++ )
-		                {
-		                        if( i % 2 == LEFT )
-		                        {
-		                                joints_[i].velocity = linearToAngular( speed->getLeftSpeed());
-		                        }
-		                        else
-		                        { // assume RIGHT
-		                                joints_[i].velocity = linearToAngular( speed->getRightSpeed());
-		                        }
-		                }
-		        }
-		        */
 	}
 
 	/**
