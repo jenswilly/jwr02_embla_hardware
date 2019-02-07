@@ -42,7 +42,7 @@ namespace embla_hardware
 	EmblaHardware::EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq ) :
 		nh_( nh ),
 		private_nh_( private_nh ),
-		roboclaw_( "/dev/roboclaw", 460800 ) /*,
+		roboclaw_( "/dev/ttyACM0", 460800 ) /*,
 	system_status_task_(husky_status_msg_),
 	power_status_task_(husky_status_msg_),
 	safety_status_task_(husky_status_msg_),
