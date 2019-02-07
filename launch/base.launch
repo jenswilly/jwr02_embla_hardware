@@ -1,4 +1,4 @@
-	<?xml version=“1.0”?>
+	<?xml version="1.0"?>
 <launch>
 	<!-- Not using Clearpath's cmd_vel_mux for now (but we should). SBUS output is remapped raw to cmd_vel -->
 	<remap from="/output/sbus/cmd_vel" to="/cmd_vel"/>
