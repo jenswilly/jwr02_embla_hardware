@@ -21,8 +21,8 @@
 Roboclaw::Roboclaw( const std::string &port, uint32_t baudrate )
 {
 	/* initialize pointer to a new Serial port object */
-	port_ = new serial::Serial( port, baudrate, serial::Timeout::simpleTimeout( 100 ));
-	port_->open();
+	port_ = new serial::Serial( port, baudrate, serial::Timeout::simpleTimeout( 1000 ));
+//	port_->open();
 }
 
 /*
@@ -32,6 +32,11 @@ Roboclaw::~Roboclaw()
 {
 	port_->close();
 	delete port_;
+}
+
+void Roboclaw::openPort()
+{
+	port_->open();
 }
 
 /*

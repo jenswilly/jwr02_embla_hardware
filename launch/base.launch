@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 	<!-- Not using Clearpath's cmd_vel_mux for now (but we should). SBUS output is remapped raw to cmd_vel -->
-	<remap from="/output/sbus/cmd_vel" to="/cmd_vel"/>
+	<remap from="/output/sbus/cmd_vel" to="/embla_velocity_controller/cmd_vel"/>
 	
 	<!-- Launch diagnostics aggregator -->
 	<node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" output="screen">

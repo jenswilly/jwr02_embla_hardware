@@ -62,6 +62,9 @@ namespace embla_hardware
 		resetTravelOffset();
 //    initializeDiagnostics();
 		registerControlInterfaces();
+		
+//		ROS_INFO( "Opening Roboclaw port" );
+//		roboclaw_.openPort();
 	}
 
 	/**
@@ -120,9 +123,11 @@ namespace embla_hardware
 			// Register velocity joint (input from controller)
 			hardware_interface::JointHandle joint_handle( joint_state_handle, &joints_[i].velocity_command );
 			velocity_joint_interface_.registerHandle( joint_handle );
+			ROS_INFO_STREAM( "Control interface registered:" << joint_names[i] );
 		}
 		registerInterface( &joint_state_interface_ );
 		registerInterface( &velocity_joint_interface_ );
+
 	}
 
 	/**
@@ -145,7 +150,7 @@ namespace embla_hardware
 		uint32_t encoders[ 2 ];  // Only two encoders. We'll %2 to update all fours joints since order is front_left, front_right, rear_left, rear_right.
 	 	if( roboclaw_.ReadEncoders( ROBOCLAW_ADDRESS, encoders[0], encoders[1] ))
 		{
-        	ROS_DEBUG_STREAM( "Received encoder information (pulses) L:" << encoders[ LEFT ] << " R:" << encoders[ RIGHT ] );
+        	ROS_WARN_STREAM( "Received encoder information (pulses) L:" << encoders[ LEFT ] << " R:" << encoders[ RIGHT ] );
 			for( int i = 0; i < 4; i++ ) 
 			{
 				double delta = encoderPulsesToAngular( encoders[ i % 2 ] ) - joints_[ i ].position - joints_[ i ].position_offset;
@@ -165,7 +170,7 @@ namespace embla_hardware
 		uint32_t speeds[ 2 ];
 		if( roboclaw_.ReadISpeeds( ROBOCLAW_ADDRESS, speeds[0], speeds[1] ))
 		{
-        	ROS_DEBUG_STREAM( "Received speed information (pulses/sec) L:" << speeds[ LEFT ] << " R:" << speeds[ RIGHT ] );
+        	ROS_WARN_STREAM( "Received speed information (pulses/sec) L:" << speeds[ LEFT ] << " R:" << speeds[ RIGHT ] );
 			for( int i = 0; i < 4; i++ )
 				joints_[ i ].velocity = encoderPulsesToAngular( speeds[ i % 2 ] );
 		}
@@ -181,7 +186,21 @@ namespace embla_hardware
 
 		limitDifferentialSpeed( speedLeft, speedRight, max_speed_ * pulsesPerRev_ );
 
-		roboclaw_.SpeedAccelM1M2( ROBOCLAW_ADDRESS, max_accel_ * pulsesPerRev_, speedLeft, speedRight );
+
+
+if( speedLeft > 0 )
+{
+		roboclaw_.SpeedM1( 128, (uint32_t)990 );
+//		roboclaw_.SpeedAccelM2( 128, max_accel_ * pulsesPerRev_, speedRight );
+		ROS_WARN_STREAM( "Writing to Roboclaw. M1: 990" );
+}
+else
+{
+		ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
+		roboclaw_.SpeedAccelM1( ROBOCLAW_ADDRESS, max_accel_ * pulsesPerRev_, speedLeft );
+		roboclaw_.SpeedAccelM2( ROBOCLAW_ADDRESS, max_accel_ * pulsesPerRev_, speedRight );
+}
+//		roboclaw_.SpeedAccelM1M2( ROBOCLAW_ADDRESS, max_accel_ * pulsesPerRev_, speedLeft, speedRight );
 	}
 
 	/**

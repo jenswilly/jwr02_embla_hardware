@@ -27,6 +27,8 @@ class Roboclaw
 	 */
 	~Roboclaw();
 
+	void openPort();
+
 	/*
 	 * The following are all public helper methods for reading data from and sending
 	 *		commands to the Roboclaw
