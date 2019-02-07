@@ -150,7 +150,7 @@ namespace embla_hardware
 		uint32_t encoders[ 2 ];  // Only two encoders. We'll %2 to update all fours joints since order is front_left, front_right, rear_left, rear_right.
 	 	if( roboclaw_.ReadEncoders( ROBOCLAW_ADDRESS, encoders[0], encoders[1] ))
 		{
-        	ROS_WARN_STREAM( "Received encoder information (pulses) L:" << encoders[ LEFT ] << " R:" << encoders[ RIGHT ] );
+        	ROS_INFO( "Received encoder information (pulses) L: %04X R: %04X", encoders[ LEFT ], encoders[ RIGHT ] );
 			for( int i = 0; i < 4; i++ ) 
 			{
 				double delta = encoderPulsesToAngular( encoders[ i % 2 ] ) - joints_[ i ].position - joints_[ i ].position_offset;
@@ -170,7 +170,7 @@ namespace embla_hardware
 		uint32_t speeds[ 2 ];
 		if( roboclaw_.ReadISpeeds( ROBOCLAW_ADDRESS, speeds[0], speeds[1] ))
 		{
-        	ROS_WARN_STREAM( "Received speed information (pulses/sec) L:" << speeds[ LEFT ] << " R:" << speeds[ RIGHT ] );
+        	ROS_INFO( "Received speed information (pulses/sec) L: %04X R: %04X", speeds[ LEFT ], speeds[ RIGHT ] );
 			for( int i = 0; i < 4; i++ )
 				joints_[ i ].velocity = encoderPulsesToAngular( speeds[ i % 2 ] );
 		}
@@ -186,13 +186,12 @@ namespace embla_hardware
 
 		limitDifferentialSpeed( speedLeft, speedRight, max_speed_ * pulsesPerRev_ );
 
-
-
 if( speedLeft > 0 )
 {
-		roboclaw_.SpeedM1( 128, (uint32_t)990 );
+	roboclaw_.ForwardM1( ROBOCLAW_ADDRESS, 64 );
+//		roboclaw_.SpeedM1( 128, (uint32_t)990 );
 //		roboclaw_.SpeedAccelM2( 128, max_accel_ * pulsesPerRev_, speedRight );
-		ROS_WARN_STREAM( "Writing to Roboclaw. M1: 990" );
+		ROS_WARN( "Writing to Roboclaw. M1 forward 50%" );
 }
 else
 {
