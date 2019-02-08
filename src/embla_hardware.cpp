@@ -181,17 +181,8 @@ namespace embla_hardware
 
 		limitDifferentialSpeed( speedLeft, speedRight, max_speed_ * pulsesPerRev_ );
 
-		// TEMP: if left > 0, we write hardcoded values for testing. If not, we write 0,0
-		if( speedLeft > 0 )
-		{
-			roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>( 500, 0 ) );
-			ROS_WARN( "Roboclaw target speed: %d/%d. DEBUG Writing to Roboclaw. M1/M2: 500/0", (int)speedLeft, (int)speedRight );
-		}
-		else
-		{
-			ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
-			roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>( 0, 0 ) );
-			//		roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>(speedLeft, speedRight) );
+		ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
+		roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>(speedLeft, speedRight) );
 		}
 	}
 

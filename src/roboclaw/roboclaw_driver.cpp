@@ -220,7 +220,6 @@ namespace roboclaw {
 	}
 
 	void driver::set_velocity( unsigned char address, std::pair<int, int> speed ) {
-return;
 		unsigned char rx_buffer[2];
 		unsigned char tx_buffer[8];
 
@@ -236,7 +235,6 @@ return;
 		tx_buffer[7] = (unsigned char) (speed.second & 0xFF);
 
 		txrx( address, 37, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false );
-//		txrx( address, 37, tx_buffer, sizeof(tx_buffer), nullptr, 0, true, false );	
 	}
 
 	void driver::set_duty( unsigned char address, std::pair<int, int> duty ) {
