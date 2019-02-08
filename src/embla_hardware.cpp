@@ -158,12 +158,11 @@ namespace embla_hardware
 					ROS_DEBUG( "Dropping overflow measurement from encoder" );
 				}
 			}
-/*
+
 			std::pair<int, int> speeds = roboclaw_.get_velocity( ROBOCLAW_ADDRESS );
 			ROS_INFO( "Received speed information (pulses/sec) L: %d R: %d", speeds.first, speeds.second );
 			for( int i = 0; i < 4; i++ )
 				joints_[ i ].velocity = encoderPulsesToAngular( (i % 2 == 0 ? speeds.first : speeds.second) );
-*/
 
 		} catch( timeout_exception ex ) {
 			ROS_ERROR_STREAM( "Roboclaw timeout error in updateJointsFromHardware: " << ex.what() );

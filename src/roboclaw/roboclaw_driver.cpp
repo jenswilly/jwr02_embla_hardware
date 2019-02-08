@@ -111,7 +111,7 @@ namespace roboclaw {
 			response_vector = serial->read( want_bytes );
 		} catch( timeout_exception ex ) {
 			std::ostringstream description;
-			description << "Timeout reading from RoboClaw: serial->read (" << ex.what() << "). Cmd = " << (int)command << " want_bytes: " << want_bytes;
+			description << "Timeout reading from RoboClaw: serial->read (" << ex.what() << "). Cmd = " << (int)command << " want_bytes: " << want_bytes << ", response_vector: " << response_vector.size();
 			throw timeout_exception( description.str() );		
 		}
 
@@ -135,7 +135,9 @@ namespace roboclaw {
 			crc_received += response[bytes_received - 1];
 
 			if( crc_calculated != crc_received ) {
-				throw roboclaw::crc_exception( "Roboclaw CRC mismatch" );
+				std::ostringstream description;
+				description << "Roboclaw read CRC mismatch. Cmd = " << (int)command;
+				throw roboclaw::crc_exception( description.str() );
 			}
 
 			memcpy( rx_data, &response[0], bytes_received - 2 );
@@ -218,6 +220,7 @@ namespace roboclaw {
 	}
 
 	void driver::set_velocity( unsigned char address, std::pair<int, int> speed ) {
+return;
 		unsigned char rx_buffer[2];
 		unsigned char tx_buffer[8];
 
@@ -233,6 +236,7 @@ namespace roboclaw {
 		tx_buffer[7] = (unsigned char) (speed.second & 0xFF);
 
 		txrx( address, 37, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false );
+//		txrx( address, 37, tx_buffer, sizeof(tx_buffer), nullptr, 0, true, false );	
 	}
 
 	void driver::set_duty( unsigned char address, std::pair<int, int> duty ) {
