@@ -183,7 +183,6 @@ namespace embla_hardware
 
 		ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
 		roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>(speedLeft, speedRight) );
-		}
 	}
 
 	/**
