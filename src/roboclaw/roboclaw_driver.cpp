@@ -110,8 +110,8 @@ namespace roboclaw {
 		try {
 			response_vector = serial->read( want_bytes );
 		} catch( timeout_exception ex ) {
-			std::ostreamstring description;
-			description << "Timeout reading from RoboClaw: serial->read (" << ex.what() << "). Cmd = " << (int)command;
+			std::ostringstream description;
+			description << "Timeout reading from RoboClaw: serial->read (" << ex.what() << "). Cmd = " << (int)command << " want_bytes: " << want_bytes;
 			throw timeout_exception( description.str() );		
 		}
 
@@ -120,7 +120,7 @@ namespace roboclaw {
 		unsigned char* response = (unsigned char*) &response_vector[0];
 
 		if( bytes_received != want_bytes ) {
-			std::ostreamstring description;
+			std::ostringstream description;
 			description << "Timeout reading from RoboClaw: bytes_received != want_bytes. Cmd = " << (int)command;
 			throw timeout_exception( description.str() );
 		}
