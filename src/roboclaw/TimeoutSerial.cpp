@@ -112,6 +112,12 @@ void TimeoutSerial::read( char *data, size_t size )
 
 	result = resultInProgress;
 	bytesTransferred = 0;
+	// Do we need io.reset() here? 
+	// Docs say:
+	//	This function must be called prior to any second or later set of invocations of the run(), run_one(), poll() or poll_one() functions...
+	// And it does not seem to be called anywhere? -JWJ
+	io.reset();	// Added. -JWJ
+
 	for(;; )
 	{
 		io.run_one();
