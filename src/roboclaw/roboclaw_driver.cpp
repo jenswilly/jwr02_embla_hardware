@@ -26,253 +26,217 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/bind.hpp>
 #include <boost/array.hpp>
-#include <sstream>
 
 namespace roboclaw {
 
-	unsigned char driver::BASE_ADDRESS = 128;
-	unsigned int driver::DEFAULT_BAUDRATE = 115200;
+    unsigned char driver::BASE_ADDRESS = 128;
+    unsigned int driver::DEFAULT_BAUDRATE = 115200;
 
-	driver::driver( std::string port, unsigned int baudrate ) {
-		serial = std::shared_ptr<TimeoutSerial>( new TimeoutSerial( port, baudrate ));
-		serial->setTimeout( boost::posix_time::milliseconds( 200 ));
-	}
+    driver::driver(std::string port, unsigned int baudrate) {
+        serial = std::shared_ptr<TimeoutSerial>(new TimeoutSerial(port, baudrate));
+        serial->setTimeout(boost::posix_time::milliseconds(200));
+    }
 
-	void driver::crc16_reset() {
-		crc = 0;
-	}
+    void driver::crc16_reset() {
+        crc = 0;
+    }
 
-	uint16_t driver::crc16( uint8_t *packet, size_t nBytes ) {
-
-		for( size_t byte = 0; byte < nBytes; byte++ ) {
+    uint16_t driver::crc16(uint8_t *packet, size_t nBytes) {
 
-			crc = crc ^ ((uint16_t) packet[byte] << 8);
-
-			for( uint8_t bit = 0; bit < 8; bit++ ) {
-				if( crc & 0x8000 )
-					crc = (crc << 1) ^ 0x1021;
-				else
-					crc = crc << 1;
-			}
-		}
+        for (size_t byte = 0; byte < nBytes; byte++) {
 
-		return crc;
-	}
+            crc = crc ^ ((uint16_t) packet[byte] << 8);
 
-	size_t driver::txrx( unsigned char address,
-			     unsigned char command,
-			     unsigned char *tx_data,
-			     size_t tx_length,
-			     unsigned char *rx_data,
-			     size_t rx_length,
-			     bool tx_crc, bool rx_crc ) {
+            for (uint8_t bit = 0; bit < 8; bit++) {
+                if (crc & 0x8000)
+                    crc = (crc << 1) ^ 0x1021;
+                else
+                    crc = crc << 1;
+            }
+        }
 
-		boost::mutex::scoped_lock lock( serial_mutex );
+        return crc;
+    }
 
-		std::vector<unsigned char> packet;
+    size_t driver::txrx(unsigned char address,
+                        unsigned char command,
+                        unsigned char *tx_data,
+                        size_t tx_length,
+                        unsigned char *rx_data,
+                        size_t rx_length,
+                        bool tx_crc, bool rx_crc) {
 
-		if( tx_crc )
-			packet.resize( tx_length + 4 );
-		else
-			packet.resize( tx_length + 2 );
+        boost::mutex::scoped_lock lock(serial_mutex);
 
-		// Header
-		packet[0] = address;
-		packet[1] = command;
+        std::vector<unsigned char> packet;
 
-		crc16_reset();
-		crc16( &packet[0], 2 );
+        if (tx_crc)
+            packet.resize(tx_length + 4);
+        else
+            packet.resize(tx_length + 2);
 
-		// Data
-		if( tx_length > 0 && tx_data != nullptr )
-			memcpy( &packet[2], tx_data, tx_length );
+        // Header
+        packet[0] = address;
+        packet[1] = command;
 
-		// CRC
-		if( tx_crc ) {
-			unsigned int crc = crc16( &packet[2], tx_length );
+        crc16_reset();
+        crc16(&packet[0], 2);
 
-			// RoboClaw expects big endian / MSB first
-			packet[tx_length + 2] = (unsigned char) ((crc >> 8) & 0xFF);
-			packet[tx_length + 2 + 1] = (unsigned char) (crc & 0xFF);
+        // Data
+        if (tx_length > 0 && tx_data != nullptr)
+            memcpy(&packet[2], tx_data, tx_length);
 
-		}
+        // CRC
+        if (tx_crc) {
+            unsigned int crc = crc16(&packet[2], tx_length);
 
-		serial->write((char*)&packet[0], packet.size());
+            // RoboClaw expects big endian / MSB first
+            packet[tx_length + 2] = (unsigned char) ((crc >> 8) & 0xFF);
+            packet[tx_length + 2 + 1] = (unsigned char) (crc & 0xFF);
 
-		size_t want_bytes;
-		if( rx_crc )
-			want_bytes = rx_length + 2;
-		else
-			want_bytes = rx_length;
+        }
 
-		std::vector<char> response_vector;
+        serial->write((char*)&packet[0], packet.size());
 
-		try {
-			response_vector = serial->read( want_bytes );
-		} catch( timeout_exception ex ) {
-			std::ostringstream description;
-			description << "Timeout reading from RoboClaw: serial->read (" << ex.what() << "). Cmd = " << (int)command << " want_bytes: " << want_bytes << ", response_vector: " << response_vector.size();
-			throw timeout_exception( description.str() );		
-		}
+        size_t want_bytes;
+        if (rx_crc)
+            want_bytes = rx_length + 2;
+        else
+            want_bytes = rx_length;
 
-		size_t bytes_received = response_vector.size();
+        std::vector<char> response_vector;
 
-		unsigned char* response = (unsigned char*) &response_vector[0];
+        response_vector = serial->read(want_bytes);
 
-		if( bytes_received != want_bytes ) {
-			std::ostringstream description;
-			description << "Timeout reading from RoboClaw: bytes_received != want_bytes. Cmd = " << (int)command;
-			throw timeout_exception( description.str() );
-		}
+        size_t bytes_received = response_vector.size();
 
-		// Check CRC
-		if( rx_crc ) {
-			unsigned int crc_calculated = crc16( &response[0], bytes_received - 2 );
-			unsigned int crc_received = 0;
+        unsigned char* response = (unsigned char*) &response_vector[0];
 
-			// RoboClaw generates big endian / MSB first
-			crc_received += response[bytes_received - 2] << 8;
-			crc_received += response[bytes_received - 1];
+        if (bytes_received != want_bytes)
+            throw timeout_exception("Timeout reading from RoboClaw");
 
-			if( crc_calculated != crc_received ) {
-				std::ostringstream description;
-				description << "Roboclaw read CRC mismatch. Cmd = " << (int)command;
-				throw roboclaw::crc_exception( description.str() );
-			}
+        // Check CRC
+        if (rx_crc) {
+            unsigned int crc_calculated = crc16(&response[0], bytes_received - 2);
+            unsigned int crc_received = 0;
 
-			memcpy( rx_data, &response[0], bytes_received - 2 );
-		} else {
-			memcpy( rx_data, &response[0], bytes_received );
-		}
+            // RoboClaw generates big endian / MSB first
+            crc_received += response[bytes_received - 2] << 8;
+            crc_received += response[bytes_received - 1];
 
-		if( !rx_crc )
-			return bytes_received;
-		else
-			return bytes_received - 2;
-	}
+            if (crc_calculated != crc_received) {
+                throw roboclaw::crc_exception("Roboclaw CRC mismatch");
+            }
 
-	std::string driver::get_version( unsigned char address ) {
+            memcpy(rx_data, &response[0], bytes_received - 2);
+        } else {
+            memcpy(rx_data, &response[0], bytes_received);
+        }
 
-		unsigned char rx_buffer[48];
+        if (!rx_crc)
+            return bytes_received;
+        else
+            return bytes_received - 2;
+    }
 
-		txrx( address, 21, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+    std::string driver::get_version(unsigned char address) {
 
-		std::string version = std::string( reinterpret_cast<char const *>(rx_buffer));
-		trim( version );
+        unsigned char rx_buffer[48];
 
-		return version;
+        txrx(address, 21, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true);
 
-	}
+        std::string version = std::string(reinterpret_cast< char const * >(rx_buffer));
+        trim(version);
 
-	std::pair<int, int> driver::get_encoders( unsigned char address ) {
+        return version;
 
-		unsigned char rx_buffer[5];
+    }
 
-		txrx( address, 16, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+    std::pair<int, int> driver::get_encoders(unsigned char address) {
 
-		uint32_t e1 = 0;
+        unsigned char rx_buffer[5];
 
-		e1 += rx_buffer[0] << 24;
-		e1 += rx_buffer[1] << 16;
-		e1 += rx_buffer[2] << 8;
-		e1 += rx_buffer[3];
+        txrx(address, 16, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true);
 
-		txrx( address, 17, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+        uint32_t e1 = 0;
 
-		uint32_t e2 = 0;
+        e1 += rx_buffer[0] << 24;
+        e1 += rx_buffer[1] << 16;
+        e1 += rx_buffer[2] << 8;
+        e1 += rx_buffer[3];
 
-		e2 += rx_buffer[0] << 24;
-		e2 += rx_buffer[1] << 16;
-		e2 += rx_buffer[2] << 8;
-		e2 += rx_buffer[3];
+        txrx(address, 17, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true);
 
-		return std::pair<int, int>((int) (int32_t) e1, (int) (int32_t) e2 );
-	}
+        uint32_t e2 = 0;
 
-	std::pair<int, int> driver::get_velocity( unsigned char address ) {
+        e2 += rx_buffer[0] << 24;
+        e2 += rx_buffer[1] << 16;
+        e2 += rx_buffer[2] << 8;
+        e2 += rx_buffer[3];
 
-		unsigned char rx_buffer[5];
+        return std::pair<int, int>((int) (int32_t) e1, (int) (int32_t) e2);
+    }
 
-		txrx( address, 18, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+    std::pair<int, int> driver::get_velocity(unsigned char address) {
 
-		uint32_t e1 = 0;
+        unsigned char rx_buffer[5];
 
-		e1 += rx_buffer[0] << 24;
-		e1 += rx_buffer[1] << 16;
-		e1 += rx_buffer[2] << 8;
-		e1 += rx_buffer[3];
+        txrx(address, 18, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true);
 
-		txrx( address, 19, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+        uint32_t e1 = 0;
 
-		uint32_t e2 = 0;
+        e1 += rx_buffer[0] << 24;
+        e1 += rx_buffer[1] << 16;
+        e1 += rx_buffer[2] << 8;
+        e1 += rx_buffer[3];
 
-		e2 += rx_buffer[0] << 24;
-		e2 += rx_buffer[1] << 16;
-		e2 += rx_buffer[2] << 8;
-		e2 += rx_buffer[3];
+        txrx(address, 19, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true);
 
-		return std::pair<int, int>((int) (int32_t) e1, (int) (int32_t) e2 );
-	}
+        uint32_t e2 = 0;
 
-	void driver::reset_encoders( unsigned char address ) {
-		unsigned char rx_buffer[1];
-		txrx( address, 20, nullptr, 0, rx_buffer, sizeof(rx_buffer), true, false );
-	}
+        e2 += rx_buffer[0] << 24;
+        e2 += rx_buffer[1] << 16;
+        e2 += rx_buffer[2] << 8;
+        e2 += rx_buffer[3];
 
-	void driver::set_velocity( unsigned char address, std::pair<int, int> speed ) {
-		/*
-		// It seems like the MIXEDSPEED (37) isn't working so set M1 and M2 speeds individually
-		unsigned char tx_buffer[5];
+        return std::pair<int, int>((int) (int32_t) e1, (int) (int32_t) e2);
+    }
 
-		txrx( address, 18, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+    void driver::reset_encoders(unsigned char address) {
+        unsigned char rx_buffer[1];
+        txrx(address, 20, nullptr, 0, rx_buffer, sizeof(rx_buffer), true, false);
+    }
 
-		uint32_t e1 = 0;
+    void driver::set_velocity(unsigned char address, std::pair<int, int> speed) {
+        unsigned char rx_buffer[1];
+        unsigned char tx_buffer[8];
 
-		e1 += rx_buffer[0] << 24;
-		e1 += rx_buffer[1] << 16;
-		e1 += rx_buffer[2] << 8;
-		e1 += rx_buffer[3];
+        // RoboClaw expects big endian / MSB first
+        tx_buffer[0] = (unsigned char) ((speed.first >> 24) & 0xFF);
+        tx_buffer[1] = (unsigned char) ((speed.first >> 16) & 0xFF);
+        tx_buffer[2] = (unsigned char) ((speed.first >> 8) & 0xFF);
+        tx_buffer[3] = (unsigned char) (speed.first & 0xFF);
 
-		txrx( address, 19, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+        tx_buffer[4] = (unsigned char) ((speed.second >> 24) & 0xFF);
+        tx_buffer[5] = (unsigned char) ((speed.second >> 16) & 0xFF);
+        tx_buffer[6] = (unsigned char) ((speed.second >> 8) & 0xFF);
+        tx_buffer[7] = (unsigned char) (speed.second & 0xFF);
 
-		uint32_t e2 = 0;
+        txrx(address, 37, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false);
+    }
 
-		e2 += rx_buffer[0] << 24;
-		e2 += rx_buffer[1] << 16;
-		e2 += rx_buffer[2] << 8;
-		e2 += rx_buffer[3];
-		*/
+    void driver::set_duty(unsigned char address, std::pair<int, int> duty) {
+        unsigned char rx_buffer[1];
+        unsigned char tx_buffer[4];
 
+        // RoboClaw expects big endian / MSB first
+        tx_buffer[0] = (unsigned char) ((duty.first >> 8) & 0xFF);
+        tx_buffer[1] = (unsigned char) (duty.first & 0xFF);
 
-		unsigned char rx_buffer[1];
-		unsigned char tx_buffer[8];
+        tx_buffer[2] = (unsigned char) ((duty.second >> 8) & 0xFF);
+        tx_buffer[3] = (unsigned char) (duty.second & 0xFF);
 
-		// RoboClaw expects big endian / MSB first
-		tx_buffer[0] = (unsigned char) ((speed.first >> 24) & 0xFF);
-		tx_buffer[1] = (unsigned char) ((speed.first >> 16) & 0xFF);
-		tx_buffer[2] = (unsigned char) ((speed.first >> 8) & 0xFF);
-		tx_buffer[3] = (unsigned char) (speed.first & 0xFF);
-
-		tx_buffer[4] = (unsigned char) ((speed.second >> 24) & 0xFF);
-		tx_buffer[5] = (unsigned char) ((speed.second >> 16) & 0xFF);
-		tx_buffer[6] = (unsigned char) ((speed.second >> 8) & 0xFF);
-		tx_buffer[7] = (unsigned char) (speed.second & 0xFF);
-
-		txrx( address, 37, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false );
-	}
-
-	void driver::set_duty( unsigned char address, std::pair<int, int> duty ) {
-		unsigned char rx_buffer[1];
-		unsigned char tx_buffer[4];
-
-		// RoboClaw expects big endian / MSB first
-		tx_buffer[0] = (unsigned char) ((duty.first >> 8) & 0xFF);
-		tx_buffer[1] = (unsigned char) (duty.first & 0xFF);
-
-		tx_buffer[2] = (unsigned char) ((duty.second >> 8) & 0xFF);
-		tx_buffer[3] = (unsigned char) (duty.second & 0xFF);
-
-		txrx( address, 34, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false );
-	}
+        txrx(address, 34, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false);
+    }
 
 }
