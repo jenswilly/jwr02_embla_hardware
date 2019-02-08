@@ -220,7 +220,31 @@ namespace roboclaw {
 	}
 
 	void driver::set_velocity( unsigned char address, std::pair<int, int> speed ) {
-		unsigned char rx_buffer[2];
+		/*
+		// It seems like the MIXEDSPEED (37) isn't working so set M1 and M2 speeds individually
+		unsigned char tx_buffer[5];
+
+		txrx( address, 18, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+
+		uint32_t e1 = 0;
+
+		e1 += rx_buffer[0] << 24;
+		e1 += rx_buffer[1] << 16;
+		e1 += rx_buffer[2] << 8;
+		e1 += rx_buffer[3];
+
+		txrx( address, 19, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+
+		uint32_t e2 = 0;
+
+		e2 += rx_buffer[0] << 24;
+		e2 += rx_buffer[1] << 16;
+		e2 += rx_buffer[2] << 8;
+		e2 += rx_buffer[3];
+		*/
+
+
+		unsigned char rx_buffer[1];
 		unsigned char tx_buffer[8];
 
 		// RoboClaw expects big endian / MSB first
