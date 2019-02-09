@@ -23,9 +23,10 @@
 */
 
 #include "embla_hardware/embla_hardware.h"
-#include "roboclaw/roboclaw.h"
+#include "roboclaw/roboclaw_driver.h"
 #include <boost/assign/list_of.hpp>
 #include <math.h>
+#include <string>
 
 namespace
 {
@@ -42,11 +43,7 @@ namespace embla_hardware
 	EmblaHardware::EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq ) :
 		nh_( nh ),
 		private_nh_( private_nh ),
-		roboclaw_( "/dev/ttyACM0", 460800 ) /*,
-	system_status_task_(husky_status_msg_),
-	power_status_task_(husky_status_msg_),
-	safety_status_task_(husky_status_msg_),
-	software_status_task_(husky_status_msg_, target_control_freq) */
+		roboclaw_( "/dev/ttyACM0", 460800 )
 	{
 		private_nh_.param<double>( "wheel_diameter", wheel_diameter_, 0.08 );
 		private_nh_.param<double>( "max_accel", max_accel_, 2.0 );
@@ -54,17 +51,17 @@ namespace embla_hardware
 		private_nh_.param<double>( "polling_timeout_", polling_timeout_, 10.0 );
 		private_nh_.param<double>( "pulses_per_rev", pulsesPerRev_, 990 );    // 990 pulses per rev. is default for the Embla motors
 
-		std::string port;
-		private_nh_.param<std::string>( "port", port, "/dev/prolific" );
+		// Wait until Roboclaw driver is ready
+		if( !roboclaw_.serial->isOpen() )
+		{
+			ROS_WARN( "Roboclaw port not open - waiting" );
+			while( !roboclaw_.serial->isOpen() )
+				;
+		}
+		ROS_WARN( "Roboclaw open" );
 
-//    horizon_legacy::connect(port);
-//    horizon_legacy::configureLimits(max_speed_, max_accel_);
 		resetTravelOffset();
-//    initializeDiagnostics();
 		registerControlInterfaces();
-		
-//		ROS_INFO( "Opening Roboclaw port" );
-//		roboclaw_.openPort();
 	}
 
 	/**
@@ -72,16 +69,12 @@ namespace embla_hardware
 	*/
 	void EmblaHardware::resetTravelOffset()
 	{
-		uint32_t encoders[ 2 ];  // Only two encoders. We'll %2 to update all fours joints since order is front_left, front_right, rear_left, rear_right.
-		if( roboclaw_.ReadEncoders( ROBOCLAW_ADDRESS, encoders[0], encoders[1] ))
-		{
-			for( int i = 0; i < 4; i++ )
-				joints_[ i ].position_offset = encoderPulsesToAngular( encoders[ i % 2 ] );
-		}
-		else
-		{
-			ROS_ERROR( "Could not get encoder data to calibrate travel offset" );
-		}
+		std::pair<int, int> encoders = roboclaw_.get_encoders( ROBOCLAW_ADDRESS );
+
+		joints_[ 0 ].position_offset = encoderPulsesToAngular( encoders.first );
+		joints_[ 1 ].position_offset = encoderPulsesToAngular( encoders.second );
+		joints_[ 2 ].position_offset = encoderPulsesToAngular( encoders.first );
+		joints_[ 3 ].position_offset = encoderPulsesToAngular( encoders.second );
 	}
 
 	/**
@@ -127,7 +120,6 @@ namespace embla_hardware
 		}
 		registerInterface( &joint_state_interface_ );
 		registerInterface( &velocity_joint_interface_ );
-
 	}
 
 	/**
@@ -147,13 +139,14 @@ namespace embla_hardware
 	 */
 	void EmblaHardware::updateJointsFromHardware()
 	{
-		uint32_t encoders[ 2 ];  // Only two encoders. We'll %2 to update all fours joints since order is front_left, front_right, rear_left, rear_right.
-	 	if( roboclaw_.ReadEncoders( ROBOCLAW_ADDRESS, encoders[0], encoders[1] ))
-		{
-        	ROS_WARN_STREAM( "Received encoder information (pulses) L:" << encoders[ LEFT ] << " R:" << encoders[ RIGHT ] );
-			for( int i = 0; i < 4; i++ ) 
+		try {
+			std::pair<int, int> encoders = roboclaw_.get_encoders( ROBOCLAW_ADDRESS );
+			ROS_INFO( "Received encoder information (pulses) L: %d R: %d", encoders.first, encoders.second );
+	// --> After this, we get a "terminate called after throwing an instance of 'timeout_exception' what():  Timeout expired" exception. Only one roboclaw command can be sent. But .set_velocity() works...
+
+			for( int i = 0; i < 4; i++ )
 			{
-				double delta = encoderPulsesToAngular( encoders[ i % 2 ] ) - joints_[ i ].position - joints_[ i ].position_offset;
+				double delta = encoderPulsesToAngular( (i % 2 == 0 ? encoders.first : encoders.second) ) - joints_[ i ].position - joints_[ i ].position_offset;
 
 				// 1.0 radians delta is deemed ok. Anything larger that that is "suspiciously large" and might be from encoder rollover
 				if( std::abs( delta ) < 1.0 )
@@ -162,18 +155,20 @@ namespace embla_hardware
 				{
 					// Suspicious! Drop this measurement and only update the offset for subsequent readings
 					joints_[i].position_offset += delta;
-					ROS_DEBUG( "Dropping overflow measurement from encoder" );				
+					ROS_DEBUG( "Dropping overflow measurement from encoder" );
 				}
 			}
-		}
 
-		uint32_t speeds[ 2 ];
-		if( roboclaw_.ReadISpeeds( ROBOCLAW_ADDRESS, speeds[0], speeds[1] ))
-		{
-        	ROS_WARN_STREAM( "Received speed information (pulses/sec) L:" << speeds[ LEFT ] << " R:" << speeds[ RIGHT ] );
+			std::pair<int, int> speeds = roboclaw_.get_velocity( ROBOCLAW_ADDRESS );
+			ROS_INFO( "Received speed information (pulses/sec) L: %d R: %d", speeds.first, speeds.second );
 			for( int i = 0; i < 4; i++ )
-				joints_[ i ].velocity = encoderPulsesToAngular( speeds[ i % 2 ] );
+				joints_[ i ].velocity = encoderPulsesToAngular( (i % 2 == 0 ? speeds.first : speeds.second) );
+
+		} catch( timeout_exception ex ) {
+			ROS_ERROR_STREAM( "Roboclaw timeout error in updateJointsFromHardware: " << ex.what() );
+			throw ex;
 		}
+	
 	}
 
 	/**
@@ -186,21 +181,8 @@ namespace embla_hardware
 
 		limitDifferentialSpeed( speedLeft, speedRight, max_speed_ * pulsesPerRev_ );
 
-
-
-if( speedLeft > 0 )
-{
-		roboclaw_.SpeedM1( 128, (uint32_t)990 );
-//		roboclaw_.SpeedAccelM2( 128, max_accel_ * pulsesPerRev_, speedRight );
-		ROS_WARN_STREAM( "Writing to Roboclaw. M1: 990" );
-}
-else
-{
 		ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
-		roboclaw_.SpeedAccelM1( ROBOCLAW_ADDRESS, max_accel_ * pulsesPerRev_, speedLeft );
-		roboclaw_.SpeedAccelM2( ROBOCLAW_ADDRESS, max_accel_ * pulsesPerRev_, speedRight );
-}
-//		roboclaw_.SpeedAccelM1M2( ROBOCLAW_ADDRESS, max_accel_ * pulsesPerRev_, speedLeft, speedRight );
+		roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>(speedLeft, speedRight) );
 	}
 
 	/**
@@ -233,9 +215,9 @@ else
 	 * @param encoder Encoder value in pulses.
 	 * @return Returns the corresponding radian value.
 	 */
-	double EmblaHardware::encoderPulsesToAngular( const double &encoder ) const
+	double EmblaHardware::encoderPulsesToAngular( const int &encoder ) const
 	{
-		return encoder / pulsesPerRev_ * 2 * M_PI;
+		return (double)encoder / pulsesPerRev_ * 2 * M_PI;
 	}
 
 	/**
@@ -243,9 +225,9 @@ else
 	 * @param angle Number of radians.
 	 * @return The corresponding number of encoder pulses.
 	 */
-	double EmblaHardware::angularToEncoderPulses( const double &angle ) const
+	int EmblaHardware::angularToEncoderPulses( const double &angle ) const
 	{
-		return angle / (2 * M_PI) * pulsesPerRev_;
+		return (int)(angle / (2 * M_PI) * pulsesPerRev_);
 	}
 
 }  // namespace embla_hardware

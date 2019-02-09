@@ -7,15 +7,14 @@ find_package(catkin REQUIRED COMPONENTS
 	diagnostic_updater
 	roslaunch
 	roscpp
-	sensor_msgs
-	serial)
+	sensor_msgs)
 
 find_package(Boost REQUIRED COMPONENTS chrono system)
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES roboclaw
-  CATKIN_DEPENDS diagnostic_updater hardware_interface roscpp sensor_msgs serial
+  CATKIN_DEPENDS diagnostic_updater hardware_interface roscpp sensor_msgs
   DEPENDS Boost system_lib
 )
 
@@ -23,7 +22,7 @@ include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_compile_options(-std=c++11)
 
-add_library(roboclaw src/roboclaw/roboclaw.cpp)
+add_library(roboclaw src/roboclaw/roboclaw_driver.cpp src/roboclaw/TimeoutSerial.cpp)
 
 add_executable(embla_hardware_node
   src/embla_hardware_node.cpp

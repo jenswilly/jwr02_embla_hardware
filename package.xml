@@ -18,7 +18,6 @@
   <build_depend>roscpp</build_depend>
   <build_depend>roslaunch</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <build_depend>serial</build_depend>
 
   <run_depend>controller_manager</run_depend>
   <run_depend>diagnostic_updater</run_depend>
@@ -29,6 +28,5 @@
   <run_depend>hardware_interface</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
-  <run_depend>serial</run_depend>
 <!--  <run_depend>topic_tools</run_depend> -->
 </package>

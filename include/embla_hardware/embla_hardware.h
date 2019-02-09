@@ -34,7 +34,8 @@
 #include "sensor_msgs/JointState.h"
 // #include "husky_msgs/HuskyStatus.h"
 #include <string>
-#include "roboclaw/roboclaw.h"
+#include "roboclaw/roboclaw_driver.h"
+#include <map>
 
 namespace embla_hardware
 {
@@ -64,14 +65,14 @@ namespace embla_hardware
 
 		void registerControlInterfaces();
 
-		double encoderPulsesToAngular( const double &encoder ) const;
-		double angularToEncoderPulses( const double &angle ) const;
+		double encoderPulsesToAngular( const int &encoder ) const;
+		int angularToEncoderPulses( const double &angle ) const;
 
 		void limitDifferentialSpeed( double &travel_speed_left, double &travel_speed_right, double maxSpeed ) const;
 
 		ros::NodeHandle nh_, private_nh_;
 
-		Roboclaw roboclaw_;
+		roboclaw::driver roboclaw_;
 
 		// ROS Control interfaces
 		hardware_interface::JointStateInterface joint_state_interface_;
