@@ -37,12 +37,13 @@ namespace embla_hardware
 	class EmblaEMCUDiagnosticTask : public diagnostic_updater::DiagnosticTask
 	{
 	  public:
-		explicit EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg, roboclaw::driver &roboclaw );
+		explicit EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg, roboclaw::driver &roboclaw, uint8_t roboclawAddress );
 		void run( diagnostic_updater::DiagnosticStatusWrapper &stat );
 
 	  private:
 		EmblaEMCUStatus &msg_;  // TODO: This is used to also publish the status on the "status" topic. Maybe not needed? -JWJ
 		roboclaw::driver &roboclaw_;
+		uint8_t roboclawAddress_;
 	};
 }       // namespace embla_hardware
 #endif

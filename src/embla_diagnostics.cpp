@@ -28,20 +28,21 @@
 
 namespace embla_hardware
 {
-	EmblaEMCUDiagnosticTask::EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg, roboclaw::driver &roboclaw ) :
+	EmblaEMCUDiagnosticTask::EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg, roboclaw::driver &roboclaw, uint8_t roboclawAddress ) :
 		DiagnosticTask( "emcu_status" ),
 		msg_( msg ),
-		roboclaw_( roboclaw )
+		roboclaw_( roboclaw ),
+		roboclawAddress_( roboclawAddress )
 	{ }
 
 	void EmblaEMCUDiagnosticTask::run( diagnostic_updater::DiagnosticStatusWrapper &stat )
 	{
 		// Update from hardware
-		msg_.status = roboclaw_.get_status( ROBOCLAW_ADDRESS );
-		msg_.battery_voltage = roboclaw_.get_battery_voltage( ROBOCLAW_ADDRESS );
-		msg_.logic_voltage = roboclaw_.get_logic_voltage( ROBOCLAW_ADDRESS );
-		msg_.temperature = roboclaw_.get_temperature1( ROBOCLAW_ADDRESS );	// TODO: temp
-		std::pair<double, double> currents = roboclaw_.get_currents( ROBOCLAW_ADDRESS );	// TODO: temp
+		msg_.status = roboclaw_.get_status( roboclawAddress_ );
+		msg_.battery_voltage = roboclaw_.get_battery_voltage( roboclawAddress_ );
+		msg_.logic_voltage = roboclaw_.get_logic_voltage( roboclawAddress_ );
+		msg_.temperature = roboclaw_.get_temperature1( roboclawAddress_ );      // TODO: temp
+		std::pair<double, double> currents = roboclaw_.get_currents( roboclawAddress_ );        // TODO: temp
 		msg_.motor1_current = currents.first;
 		msg_.motor2_current = currents.second;
 
