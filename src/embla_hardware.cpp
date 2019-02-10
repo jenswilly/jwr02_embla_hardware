@@ -97,7 +97,7 @@ namespace embla_hardware
 	void EmblaHardware::registerControlInterfaces()
 	{
 		ros::V_string joint_names = boost::assign::list_of( "left_front_wheel_joint" )
-		    ( "right_front_wheel_joint" ) ( "left_rear_wheel_joint" ) ( "right_rear_wheel_joint" );
+						    ( "right_front_wheel_joint" ) ( "left_rear_wheel_joint" ) ( "right_rear_wheel_joint" );
 		for( unsigned int i = 0; i < joint_names.size(); i++ )
 		{
 			// Create and register joint state (output to controller)
@@ -134,7 +134,7 @@ namespace embla_hardware
 	{
 		try {
 			std::pair<int, int> encoders = roboclaw_.get_encoders( ROBOCLAW_ADDRESS );
-			ROS_INFO( "Received encoder information (pulses) L: %d R: %d", encoders.first, encoders.second );
+			// ROS_INFO( "Received encoder information (pulses) L: %d R: %d", encoders.first, encoders.second );
 
 			for( int i = 0; i < 4; i++ )
 			{
@@ -152,7 +152,7 @@ namespace embla_hardware
 			}
 
 			std::pair<int, int> speeds = roboclaw_.get_velocity( ROBOCLAW_ADDRESS );
-			ROS_INFO( "Received speed information (pulses/sec) L: %d R: %d", speeds.first, speeds.second );
+			// ROS_INFO( "Received speed information (pulses/sec) L: %d R: %d", speeds.first, speeds.second );
 			for( int i = 0; i < 4; i++ )
 				joints_[ i ].velocity = encoderPulsesToAngular( (i % 2 == 0 ? speeds.first : speeds.second) );
 
@@ -173,7 +173,7 @@ namespace embla_hardware
 
 		limitDifferentialSpeed( speedLeft, speedRight, max_speed_ * pulsesPerRev_ );
 
-		ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
+		// ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
 		roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>( speedLeft, speedRight ) );
 	}
 
