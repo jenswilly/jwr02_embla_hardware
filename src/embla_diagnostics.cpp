@@ -28,7 +28,7 @@
 
 namespace embla_hardware
 {
-	EmblaEMCUDiagnosticTask::EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg, roboclaw::driver roboclaw ) :
+	EmblaEMCUDiagnosticTask::EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg, roboclaw::driver &roboclaw ) :
 		DiagnosticTask( "emcu_status" ),
 		msg_( msg ),
 		roboclaw_( roboclaw )
