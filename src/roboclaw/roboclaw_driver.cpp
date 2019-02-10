@@ -139,16 +139,89 @@ namespace roboclaw {
 			return bytes_received - 2;
 	}
 
-	std::string driver::get_version( unsigned char address ) {
+	/**
+	 * @brief Transmits specifed TX data and reads string until a \0 is received. RX CRC _is_ performed.
+	 * @param rx_length is the MAX length to receive. If a \0 has not been received when this many bytes have been read, a timeout exception will be thrown.
+	 **/
+	std::string driver::txrx( unsigned char address,
+			     unsigned char command,
+			     unsigned char *tx_data,
+			     size_t tx_length,
+			     size_t rx_length,
+			     bool tx_crc ) {
 
-		unsigned char rx_buffer[48];
+		boost::mutex::scoped_lock lock( serial_mutex );
 
-		txrx( address, 21, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+		std::vector<unsigned char> packet;
 
-		std::string version = std::string( reinterpret_cast<char const *>(rx_buffer));
-		trim( version );
+		if( tx_crc )
+			packet.resize( tx_length + 4 );
+		else
+			packet.resize( tx_length + 2 );
 
-		return version;
+		// Header
+		packet[0] = address;
+		packet[1] = command;
+
+		crc16_reset();
+		crc16( &packet[0], 2 );
+
+		// Data
+		if( tx_length > 0 && tx_data != nullptr )
+			memcpy( &packet[2], tx_data, tx_length );
+
+		// CRC
+		if( tx_crc ) {
+			unsigned int crc = crc16( &packet[2], tx_length );
+
+			// RoboClaw expects big endian / MSB first
+			packet[tx_length + 2] = (unsigned char) ((crc >> 8) & 0xFF);
+			packet[tx_length + 2 + 1] = (unsigned char) (crc & 0xFF);
+
+		}
+
+		serial->write((char*)&packet[0], packet.size());
+
+		// Read data one byte at a time
+		std::vector<char> response_vector;
+		char response_byte;
+
+		do
+		{
+			// Read one byte and add it to the response vector
+			serial->read( &response_byte, 1 );
+			response_vector.push_back( response_byte );
+		} while ( response_vector.back() != '\0' && response_vector.size() <= rx_length );	// We can safely use .back() since the vector will never be empty here
+
+		// Length check
+		if( response_vector.size() > rx_length )
+			throw timeout_exception( "Didn't get string terminator with specified rx_length" );
+
+		// The response_vector now contains string including \0. Perform CRC check		
+		unsigned char* response = (unsigned char*) &response_vector[0];
+		size_t bytes_received = response_vector.size();
+
+		unsigned int crc_calculated = crc16( &response[0], bytes_received - 2 );
+		unsigned int crc_received = 0;
+
+		// RoboClaw generates big endian / MSB first
+		crc_received += response[bytes_received - 2] << 8;
+		crc_received += response[bytes_received - 1];
+
+		if( crc_calculated != crc_received ) {
+			throw roboclaw::crc_exception( "Roboclaw CRC mismatch in reading string" );
+		}
+
+		// We're good: copy to string. This will strip off the \0
+		return std::string( (char*)&response_vector[0] );
+	}
+
+	std::string driver::get_version( unsigned char address )
+	{
+		std::string firmware_version = txrx( address, 21, nullptr, 0, 50, false );
+		trim( firmware_version );	// This will strip off the terminating newline character
+
+		return firmware_version;
 	}
 
 	/**
