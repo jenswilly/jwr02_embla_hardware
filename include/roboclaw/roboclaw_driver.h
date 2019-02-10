@@ -39,18 +39,17 @@ namespace roboclaw {
 		driver( std::string port, unsigned int baudrate );
 
 		std::string get_version( unsigned char address );
-
 		std::pair<int, int> get_encoders( unsigned char address );
-
 		std::pair<int, int> get_velocity( unsigned char address );
-
 		uint16_t get_status( unsigned char address );
-
 		void set_velocity( unsigned char address, std::pair<int, int> speed );
-
 		void set_duty( unsigned char address, std::pair<int, int> duty );
-
 		void reset_encoders( unsigned char address );
+		double get_battery_voltage( unsigned char address );
+		double get_logic_voltage( unsigned char address );
+		double get_temperature1( unsigned char address );
+		std::pair<double, double> get_currents( unsigned char address );
+
 
 		static unsigned char BASE_ADDRESS;
 		static unsigned int DEFAULT_BAUDRATE;
@@ -59,13 +58,10 @@ namespace roboclaw {
 
 	  private:
 
-
 		boost::asio::io_service io;
-
 		boost::mutex serial_mutex;
 
 		uint16_t crc;
-
 		uint16_t crc16( uint8_t *packet, size_t nBytes );
 
 		void crc16_reset();

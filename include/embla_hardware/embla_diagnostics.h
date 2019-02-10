@@ -30,17 +30,19 @@
 #include "ros/ros.h"
 #include <diagnostic_updater/diagnostic_updater.h>
 #include "embla_hardware/EmblaEMCUStatus.h"
+#include "roboclaw/roboclaw_driver.h"
 
 namespace embla_hardware
 {
 	class EmblaEMCUDiagnosticTask : public diagnostic_updater::DiagnosticTask
 	{
 	  public:
-		explicit EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg );
+		explicit EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg, roboclaw::driver &roboclaw );
 		void run( diagnostic_updater::DiagnosticStatusWrapper &stat );
 
 	  private:
 		EmblaEMCUStatus &msg_;  // TODO: This is used to also publish the status on the "status" topic. Maybe not needed? -JWJ
+		roboclaw::driver &roboclaw_;
 	};
 }       // namespace embla_hardware
 #endif

@@ -337,4 +337,42 @@ namespace roboclaw {
 		txrx( address, 34, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false );
 	}
 
+		double driver::get_battery_voltage( unsigned char address )
+		{
+			unsigned char rx_buffer[2];
+
+			txrx( address, 24, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+
+			// Convert from MSB first
+			uint16_t value = 0;
+			value += rx_buffer[0] << 8;
+			value += rx_buffer[1];
+
+			// Divide by 10 and return as double
+			return (double)value / 10.0;
+		}
+
+		double driver::get_logic_voltage( unsigned char address )
+		{
+			unsigned char rx_buffer[2];
+
+			txrx( address, 25, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+
+			// Convert from MSB first
+			uint16_t value = 0;
+			value += rx_buffer[0] << 8;
+			value += rx_buffer[1];
+
+			// Divide by 10 and return as double
+			return (double)value / 10.0;
+		}
+		
+		double driver::get_temperature1( unsigned char address )
+		{
+			return 0;
+		}
+		std::pair<double, double> driver::get_currents( unsigned char address )
+		{
+			return std::pair<double, double>( 0, 0 );
+		}
 }

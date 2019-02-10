@@ -28,21 +28,22 @@
 
 namespace embla_hardware
 {
-	EmblaEMCUDiagnosticTask::EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg ) :
+	EmblaEMCUDiagnosticTask::EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg, roboclaw::driver roboclaw ) :
 		DiagnosticTask( "emcu_status" ),
-		msg_( msg )
+		msg_( msg ),
+		roboclaw_( roboclaw )
 	{ }
 
 	void EmblaEMCUDiagnosticTask::run( diagnostic_updater::DiagnosticStatusWrapper &stat )
 	{
 		// Update from hardware
-		// TEMP: Dummy values
-		msg_.status = 0x0000;
-		msg_.temperature = 21.2;
-		msg_.battery_voltage = 11.9;
-		msg_.logic_voltage = 3.0;
-		msg_.motor1_current = 0;
-		msg_.motor2_current = 0;
+		msg_.status = roboclaw_.get_status( ROBOCLAW_ADDRESS );
+		msg_.battery_voltage = roboclaw_.get_battery_voltage( ROBOCLAW_ADDRESS );
+		msg_.logic_voltage = roboclaw_.get_logic_voltage( ROBOCLAW_ADDRESS );
+		msg_.temperature = roboclaw_.get_temperature1( ROBOCLAW_ADDRESS );	// TODO: temp
+		std::pair<double, double> currents = roboclaw_.get_currents( ROBOCLAW_ADDRESS );	// TODO: temp
+		msg_.motor1_current = currents.first;
+		msg_.motor2_current = currents.second;
 
 		stat.add( "Status", msg_.status );
 		stat.add( "Temperature", msg_.temperature );

@@ -46,7 +46,7 @@ namespace embla_hardware
 		nh_( nh ),
 		private_nh_( private_nh ),
 		roboclaw_( "/dev/ttyACM0", 460800 ),
-		emcu_status_task_( embla_emcu_status_msg_ )
+		emcu_status_task_( embla_emcu_status_msg_, roboclaw_ )
 	{
 		private_nh_.param<double>( "wheel_diameter", wheel_diameter_, 0.08 );
 		private_nh_.param<double>( "max_accel", max_accel_, 2.0 );
