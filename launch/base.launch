@@ -46,7 +46,7 @@
 	<!-- ^^ old stuff ­­­| new stuff vv  -->
 
 	<!-- Harware driver -->
-	<node pkg="embla_hardware" type="embla_hardware_node" name="embla_hardware_node">
+	<node pkg="embla_hardware" type="embla_hardware_node" name="embla_hardware_node" output="screen">
 		<rosparam subst_value="true">
             control_frequency: 10.0
             diagnostic_frequency: 1.0

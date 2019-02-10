@@ -51,5 +51,7 @@ namespace embla_hardware
 		stat.add( "Motor 1 current", msg_.motor1_current );
 		stat.add( "Motor 2 current", msg_.motor2_current );
 
+		stat.summary( 
+
 	}
 }       // namespace embla_hardware

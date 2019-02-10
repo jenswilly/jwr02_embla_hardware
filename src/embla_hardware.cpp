@@ -87,7 +87,7 @@ namespace embla_hardware
 	{
 		diagnostic_updater_.setHardwareID( roboclaw_.get_version( ROBOCLAW_ADDRESS ));
 		diagnostic_updater_.add( emcu_status_task_ );
-		diagnostic_publisher_ = nh_.advertise<EmblaEMCUStatus>( "status", 10 );   // TODO: Do we need the publisher? -JWJ
+//		diagnostic_publisher_ = nh_.advertise<EmblaEMCUStatus>( "status", 10 );   // TODO: Do we need the publisher? -JWJ
 	}
 
 
@@ -97,7 +97,7 @@ namespace embla_hardware
 	void EmblaHardware::registerControlInterfaces()
 	{
 		ros::V_string joint_names = boost::assign::list_of( "left_front_wheel_joint" )
-						    ( "right_front_wheel_joint" ) ( "left_rear_wheel_joint" ) ( "right_rear_wheel_joint" );
+		    ( "right_front_wheel_joint" ) ( "left_rear_wheel_joint" ) ( "right_rear_wheel_joint" );
 		for( unsigned int i = 0; i < joint_names.size(); i++ )
 		{
 			// Create and register joint state (output to controller)
@@ -121,9 +121,10 @@ namespace embla_hardware
 	*/
 	void EmblaHardware::updateDiagnostics()
 	{
+		ROS_INFO( "Updating diagnostics" );
 		diagnostic_updater_.force_update();
 		embla_emcu_status_msg_.header.stamp = ros::Time::now();
-		diagnostic_publisher_.publish( embla_emcu_status_msg_ );
+//		diagnostic_publisher_.publish( embla_emcu_status_msg_ );
 	}
 
 	/**
