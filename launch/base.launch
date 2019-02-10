@@ -5,7 +5,7 @@
 	
 	<!-- Launch diagnostics aggregator -->
 	<node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" output="screen">
-		<rosparam command="load" file="$(find embla_controller)/config/analyzers.yaml"/>
+		<rosparam command="load" file="$(find embla_hardware)/config/diagnostics.yaml"/>
 	</node>
 	
 	<!-- Launch I2C service -->
