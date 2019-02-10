@@ -65,6 +65,7 @@ namespace embla_hardware
 
 		resetTravelOffset();
 		registerControlInterfaces();
+		initializeDiagnostics();
 	}
 
 	/**
@@ -85,9 +86,13 @@ namespace embla_hardware
 	*/
 	void EmblaHardware::initializeDiagnostics()
 	{
-		diagnostic_updater_.setHardwareID( roboclaw_.get_version( ROBOCLAW_ADDRESS ));
+		std::string hardwareID = roboclaw_.get_version( ROBOCLAW_ADDRESS );
+//		std::string hardwareID = "Roboclaw (hardcoded)";
+		ROS_INFO_STREAM( "EMCU diagnostics hardware ID: " << hardwareID );
+
+		diagnostic_updater_.setHardwareID( hardwareID );
 		diagnostic_updater_.add( emcu_status_task_ );
-//		diagnostic_publisher_ = nh_.advertise<EmblaEMCUStatus>( "status", 10 );   // TODO: Do we need the publisher? -JWJ
+		diagnostic_publisher_ = nh_.advertise<EmblaEMCUStatus>( "status", 10 );   // TODO: Do we need the publisher? -JWJ
 	}
 
 
@@ -121,10 +126,9 @@ namespace embla_hardware
 	*/
 	void EmblaHardware::updateDiagnostics()
 	{
-		ROS_INFO( "Updating diagnostics" );
 		diagnostic_updater_.force_update();
 		embla_emcu_status_msg_.header.stamp = ros::Time::now();
-//		diagnostic_publisher_.publish( embla_emcu_status_msg_ );
+		diagnostic_publisher_.publish( embla_emcu_status_msg_ );
 	}
 
 	/**
