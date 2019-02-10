@@ -17,3 +17,7 @@ This project (largely) follows the guidelines at http://geosoft.no/development/c
 The `embla_hardware` contains a diagnostics updater that is updated from the `embla_hardware_node`'s `diagnosticsLoop()` function.
 
 The diagnostics updater is a `diagnostic_updater::DiagnosticTask` sublass and uses a `EmblaEMCUStatus` message to pass status.
+
+The current diagnostics is also published on the "status" topic.
+
+To check diagnostics, run `rosrun rqt_robot_monitor rqt_robot_monitor`
