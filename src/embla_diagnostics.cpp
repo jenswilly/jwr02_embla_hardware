@@ -53,8 +53,39 @@ namespace embla_hardware
 		stat.add( "Motor 1 current", msg_.motor1_current );
 		stat.add( "Motor 2 current", msg_.motor2_current );
 
+		// Status codes from the manual
 		stat.summary( diagnostic_msgs::DiagnosticStatus::OK, "EMCU Status OK" );
-		if( msg_.status != 0x0000 )
-			stat.mergeSummaryf( diagnostic_msgs::DiagnosticStatus::ERROR, "Unexpected status: %04x", msg_.status );
+		if( msg_.status & 0x0001 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "M1 OverCurrent" );
+		if( msg_.status & 0x0002 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "M2 OverCurrent" );
+		if( msg_.status & 0x0004 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "E-Stop" );
+		if( msg_.status & 0x0008 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Temperatur 1" );
+		if( msg_.status & 0x0010 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Temperature 2" );
+		if( msg_.status & 0x0020 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Main battery high" );
+		if( msg_.status & 0x0040 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Logic battery high" );
+		if( msg_.status & 0x0080 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Logic battery low" );
+		if( msg_.status & 0x0100 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "M1 Driver fault" );
+		if( msg_.status & 0x0200 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "M2 Driver fault" );
+		if( msg_.status & 0x0400 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "Main battery high warning" );
+		if( msg_.status & 0x0800 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "Main battery low warning" );
+		if( msg_.status & 0x1000 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "Temperature 1 warning" );
+		if( msg_.status & 0x2000 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "Temperature 2 warning" );
+		if( msg_.status & 0x4000 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "M1 Home" );
+		if( msg_.status & 0x8000 )
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "M2 Home" );
 	}
 }       // namespace embla_hardware
