@@ -88,7 +88,7 @@ namespace embla_hardware
 	{
 		std::string hardwareID = roboclaw_.get_version( ROBOCLAW_ADDRESS );
 //		std::string hardwareID = "Roboclaw (hardcoded)";
-		ROS_INFO_STREAM( "EMCU diagnostics hardware ID: " << hardwareID );
+		ROS_INFO_STREAM( "EMCU diagnostics hardware ID: '" << hardwareID << "'" );
 
 		diagnostic_updater_.setHardwareID( hardwareID );
 		diagnostic_updater_.add( emcu_status_task_ );

@@ -197,6 +197,12 @@ namespace roboclaw {
 		if( response_vector.size() > rx_length )
 			throw timeout_exception( "Didn't get string terminator with specified rx_length" );
 
+		// Read two more bytes for CRC
+		serial->read( &response_byte, 1 );
+		response_vector.push_back( response_byte );
+		serial->read( &response_byte, 1 );
+		response_vector.push_back( response_byte );
+		
 		// The response_vector now contains string including \0. Perform CRC check		
 		unsigned char* response = (unsigned char*) &response_vector[0];
 		size_t bytes_received = response_vector.size();

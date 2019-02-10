@@ -75,7 +75,7 @@ namespace roboclaw {
 			     unsigned char *rx_data, size_t rx_length, bool tx_crc = false, bool rx_crc = false );
 
 		// Write tx_data and read until string terminator (\0) is received
-		std::string driver::txrx( unsigned char address, unsigned char command, unsigned char *tx_data, size_t tx_length,
+		std::string txrx( unsigned char address, unsigned char command, unsigned char *tx_data, size_t tx_length,
 			     size_t rx_length,
 			     bool tx_crc );
 	};
