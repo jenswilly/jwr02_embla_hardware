@@ -61,7 +61,6 @@ namespace embla_hardware
 			while( !roboclaw_.serial->isOpen() )
 				;
 		}
-		ROS_WARN( "Roboclaw open" );
 
 		resetTravelOffset();
 		registerControlInterfaces();
@@ -87,7 +86,6 @@ namespace embla_hardware
 	void EmblaHardware::initializeDiagnostics()
 	{
 		std::string hardwareID = roboclaw_.get_version( ROBOCLAW_ADDRESS );
-//		std::string hardwareID = "Roboclaw (hardcoded)";
 		ROS_INFO_STREAM( "EMCU diagnostics hardware ID: '" << hardwareID << "'" );
 
 		diagnostic_updater_.setHardwareID( hardwareID );
@@ -138,7 +136,6 @@ namespace embla_hardware
 	{
 		try {
 			std::pair<int, int> encoders = roboclaw_.get_encoders( ROBOCLAW_ADDRESS );
-			// ROS_INFO( "Received encoder information (pulses) L: %d R: %d", encoders.first, encoders.second );
 
 			for( int i = 0; i < 4; i++ )
 			{
@@ -156,7 +153,6 @@ namespace embla_hardware
 			}
 
 			std::pair<int, int> speeds = roboclaw_.get_velocity( ROBOCLAW_ADDRESS );
-			// ROS_INFO( "Received speed information (pulses/sec) L: %d R: %d", speeds.first, speeds.second );
 			for( int i = 0; i < 4; i++ )
 				joints_[ i ].velocity = encoderPulsesToAngular( (i % 2 == 0 ? speeds.first : speeds.second) );
 
@@ -164,7 +160,6 @@ namespace embla_hardware
 			ROS_ERROR_STREAM( "Roboclaw timeout error in updateJointsFromHardware: " << ex.what() );
 			throw ex;
 		}
-
 	}
 
 	/**
@@ -177,7 +172,6 @@ namespace embla_hardware
 
 		limitDifferentialSpeed( speedLeft, speedRight, max_speed_ * pulsesPerRev_ );
 
-		// ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
 		roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>( speedLeft, speedRight ) );
 	}
 
