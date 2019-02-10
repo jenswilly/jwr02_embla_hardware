@@ -52,14 +52,12 @@ void controlLoop( embla_hardware::EmblaHardware &embla,
 }
 
 /**
-* Diagnostics loop for Husky, not realtime safe
+* Diagnostics loop (not realtime safe because of Roboclaw access)
 */
-/*
-void diagnosticLoop( husky_base::HuskyHardware &husky )
+void diagnosticLoop( embla_hardware::EmblaHardware &embla )
 {
-        husky.updateDiagnostics();
+	embla.updateDiagnostics();
 }
-*/
 
 int main( int argc, char *argv[] )
 {
@@ -88,13 +86,11 @@ int main( int argc, char *argv[] )
 		&embla_queue );
 	ros::Timer control_loop = nh.createTimer( control_timer );
 
-/*
-        ros::TimerOptions diagnostic_timer(
-                ros::Duration( 1 / diagnostic_frequency ),
-                boost::bind( diagnosticLoop, boost::ref( husky )),
-                &husky_queue );
-        ros::Timer diagnostic_loop = nh.createTimer( diagnostic_timer );
-*/
+	ros::TimerOptions diagnostic_timer(
+		ros::Duration( 1 / diagnostic_frequency ),
+		boost::bind( diagnosticLoop, boost::ref( embla )),
+		&embla_queue );
+	ros::Timer diagnostic_loop = nh.createTimer( diagnostic_timer );
 
 	embla_spinner.start();
 
