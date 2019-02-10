@@ -1,6 +1,8 @@
 /*
 * Copyright 2019 Jens Willy Johannsen <jens@jwrobotics.com>, JW Robotics
 *
+* License: MIT
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
@@ -43,7 +45,8 @@ namespace embla_hardware
 	EmblaHardware::EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq ) :
 		nh_( nh ),
 		private_nh_( private_nh ),
-		roboclaw_( "/dev/ttyACM0", 460800 )
+		roboclaw_( "/dev/ttyACM0", 460800 ),
+		emcu_status_task_( embla_emcu_status_msg_ )
 	{
 		private_nh_.param<double>( "wheel_diameter", wheel_diameter_, 0.08 );
 		private_nh_.param<double>( "max_accel", max_accel_, 2.0 );
@@ -80,21 +83,12 @@ namespace embla_hardware
 	/**
 	* Register diagnostic tasks with updater class
 	*/
-	/*
 	void EmblaHardware::initializeDiagnostics()
 	{
-	  horizon_legacy::Channel<clearpath::DataPlatformInfo>::Ptr info = horizon_legacy::Channel<clearpath::DataPlatformInfo>::requestData(polling_timeout_);
-	  std::ostringstream hardware_id_stream;
-	  hardware_id_stream << "Husky " << info->getModel() << "-" << info->getSerial();
-
-	  diagnostic_updater_.setHardwareID(hardware_id_stream.str());
-	  diagnostic_updater_.add(system_status_task_);
-	  diagnostic_updater_.add(power_status_task_);
-	  diagnostic_updater_.add(safety_status_task_);
-	  diagnostic_updater_.add(software_status_task_);
-	  diagnostic_publisher_ = nh_.advertise<husky_msgs::HuskyStatus>("status", 10);
+		diagnostic_updater_.setHardwareID( roboclaw_.get_version( ROBOCLAW_ADDRESS ));
+		diagnostic_updater_.add( emcu_status_task_ );
+		diagnostic_publisher_ = nh_.advertise<EmblaEMCUStatus>( "status", 10 );   // TODO: Do we need the publisher? -JWJ
 	}
-	*/
 
 
 	/**
@@ -125,14 +119,12 @@ namespace embla_hardware
 	/**
 	* External hook to trigger diagnostic update
 	*/
-	/*
 	void EmblaHardware::updateDiagnostics()
 	{
-	  diagnostic_updater_.force_update();
-	  husky_status_msg_.header.stamp = ros::Time::now();
-	  diagnostic_publisher_.publish(husky_status_msg_);
+		diagnostic_updater_.force_update();
+		embla_emcu_status_msg_.header.stamp = ros::Time::now();
+		diagnostic_publisher_.publish( embla_emcu_status_msg_ );
 	}
-	*/
 
 	/**
 	 * @brief Read function: Pull latest speed and travel measurements from EMCU, and update joint structure for ros_control
@@ -142,7 +134,6 @@ namespace embla_hardware
 		try {
 			std::pair<int, int> encoders = roboclaw_.get_encoders( ROBOCLAW_ADDRESS );
 			ROS_INFO( "Received encoder information (pulses) L: %d R: %d", encoders.first, encoders.second );
-	// --> After this, we get a "terminate called after throwing an instance of 'timeout_exception' what():  Timeout expired" exception. Only one roboclaw command can be sent. But .set_velocity() works...
 
 			for( int i = 0; i < 4; i++ )
 			{
@@ -168,7 +159,7 @@ namespace embla_hardware
 			ROS_ERROR_STREAM( "Roboclaw timeout error in updateJointsFromHardware: " << ex.what() );
 			throw ex;
 		}
-	
+
 	}
 
 	/**
@@ -182,7 +173,7 @@ namespace embla_hardware
 		limitDifferentialSpeed( speedLeft, speedRight, max_speed_ * pulsesPerRev_ );
 
 		ROS_WARN_STREAM( "Writing to Roboclaw. L: " << speedLeft << ", R: " << speedRight );
-		roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>(speedLeft, speedRight) );
+		roboclaw_.set_velocity( ROBOCLAW_ADDRESS, std::pair<int,int>( speedLeft, speedRight ) );
 	}
 
 	/**

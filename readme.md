@@ -6,6 +6,14 @@ Likewise, 🙇‍♂️ many thanks to Zach Allen of [Slate Robotics](https://sl
 
 Thirdly, 🙇‍♂️ many thanks to Carroll Vance for the [C++ version of the RoboClaw driver](https://github.com/csvance/roboclaw) which is used in this project.
 
-## Programming Style Guide
+### Programming Style Guide
 
 This project (largely) follows the guidelines at http://geosoft.no/development/cppstyle.html.
+
+## Controllers
+...
+
+## Diagnostics
+The `embla_hardware` contains a diagnostics updater that is updated from the `embla_hardware_node`'s `diagnosticsLoop()` function.
+
+The diagnostics updater is a `diagnostic_updater::DiagnosticTask` sublass and uses a `EmblaEMCUStatus` message to pass status.

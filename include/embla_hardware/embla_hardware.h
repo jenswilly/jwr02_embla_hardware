@@ -25,14 +25,14 @@
 #ifndef EMBLA_HARDWARE_H
 #define EMBLA_HARDWARE_H
 
-// #include "husky_base/husky_diagnostics.h"
+#include "embla_diagnostics.h"
 #include "diagnostic_updater/diagnostic_updater.h"
 #include "hardware_interface/joint_state_interface.h"
 #include "hardware_interface/joint_command_interface.h"
 #include "hardware_interface/robot_hw.h"
 #include "ros/ros.h"
 #include "sensor_msgs/JointState.h"
-// #include "husky_msgs/HuskyStatus.h"
+#include "embla_hardware/EmblaEMCUStatus.h"
 #include <string>
 #include "roboclaw/roboclaw_driver.h"
 #include <map>
@@ -41,7 +41,7 @@ namespace embla_hardware
 {
 
 	/**
-	* Class representing Husky hardware, allows for ros_control to modify internal state via joint interfaces
+	* Hardware class containing controller interfaces (velocity joint handler and joint state updater) and diagnostics publisher and updater
 	*/
 	class EmblaHardware :
 		public hardware_interface::RobotHW
@@ -59,19 +59,15 @@ namespace embla_hardware
 
 	  private:
 
-		// void initializeDiagnostics();
-
+		void initializeDiagnostics();
 		void resetTravelOffset();
-
 		void registerControlInterfaces();
 
 		double encoderPulsesToAngular( const int &encoder ) const;
 		int angularToEncoderPulses( const double &angle ) const;
-
 		void limitDifferentialSpeed( double &travel_speed_left, double &travel_speed_right, double maxSpeed ) const;
 
 		ros::NodeHandle nh_, private_nh_;
-
 		roboclaw::driver roboclaw_;
 
 		// ROS Control interfaces
@@ -79,15 +75,10 @@ namespace embla_hardware
 		hardware_interface::VelocityJointInterface velocity_joint_interface_;
 
 		// Diagnostics
-		/*
 		ros::Publisher diagnostic_publisher_;
-		husky_msgs::HuskyStatus husky_status_msg_;
+		EmblaEMCUStatus embla_emcu_status_msg_;
 		diagnostic_updater::Updater diagnostic_updater_;
-		HuskyHardwareDiagnosticTask<clearpath::DataSystemStatus> system_status_task_;
-		HuskyHardwareDiagnosticTask<clearpath::DataPowerSystem> power_status_task_;
-		HuskyHardwareDiagnosticTask<clearpath::DataSafetySystemStatus> safety_status_task_;
-		HuskySoftwareDiagnosticTask software_status_task_;
-		*/
+		EmblaEMCUDiagnosticTask emcu_status_task_;
 
 		// ROS Parameters
 		double wheel_diameter_, max_accel_, max_speed_, pulsesPerRev_;

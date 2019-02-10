@@ -24,23 +24,32 @@
 * JWR-01 Embla Hardware driver/controller
 */
 
-#ifndef EMBLA_DIAGNOSTICS_H
-#define EMBLA_DIAGNOSTICS_H
-
-#include "ros/ros.h"
-#include <diagnostic_updater/diagnostic_updater.h>
-#include "embla_hardware/EmblaEMCUStatus.h"
+#include "embla_hardware/embla_diagnostics.h"
 
 namespace embla_hardware
 {
-	class EmblaEMCUDiagnosticTask : public diagnostic_updater::DiagnosticTask
-	{
-	  public:
-		explicit EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg );
-		void run( diagnostic_updater::DiagnosticStatusWrapper &stat );
+	EmblaEMCUDiagnosticTask::EmblaEMCUDiagnosticTask( EmblaEMCUStatus &msg ) :
+		DiagnosticTask( "emcu_status" ),
+		msg_( msg )
+	{ }
 
-	  private:
-		EmblaEMCUStatus &msg_;  // TODO: This is used to also publish the status on the "status" topic. Maybe not needed? -JWJ
-	};
+	void EmblaEMCUDiagnosticTask::run( diagnostic_updater::DiagnosticStatusWrapper &stat )
+	{
+		// Update from hardware
+		// TEMP: Dummy values
+		msg_.status = 0x0000;
+		msg_.temperature = 21.2;
+		msg_.battery_voltage = 11.9;
+		msg_.logic_voltage = 3.0;
+		msg_.motor1_current = 0;
+		msg_.motor2_current = 0;
+
+		stat.add( "Status", msg_.status );
+		stat.add( "Temperature", msg_.temperature );
+		stat.add( "Main battery voltage", msg_.battery_voltage );
+		stat.add( "Logic voltage", msg_.logic_voltage );
+		stat.add( "Motor 1 current", msg_.motor1_current );
+		stat.add( "Motor 2 current", msg_.motor2_current );
+
+	}
 }       // namespace embla_hardware
-#endif
