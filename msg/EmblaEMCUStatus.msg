@@ -2,7 +2,7 @@
 Header header
 
 # Value from Roboclaw's Read Status command
-uint16 status
+uint32 status
 
 float64 battery_voltage
 float64 logic_voltage

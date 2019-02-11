@@ -66,7 +66,7 @@ namespace embla_hardware
 		stat.add( "Logic voltage", msg_.logic_voltage );
 		stat.add( "Motor 1 current", msg_.motor1_current );
 		stat.add( "Motor 2 current", msg_.motor2_current );
-		stat.addf( "Raw status", "0x%04x", msg_.status );
+		stat.addf( "Raw status", "0x%08x", msg_.status );
 
 		stat.summary( diagnostic_msgs::DiagnosticStatus::OK, "EMCU OK" );
 		if( msg_.status & 0x0001 )

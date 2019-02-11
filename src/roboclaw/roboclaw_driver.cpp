@@ -245,13 +245,12 @@ namespace roboclaw {
 	/**
 	 * @brief Read Status (command 90)
 	 * @param address Roboclaw address
-	 * @return Returns a 16 bit mask with current status. Refer to manual for bit mask values.
+	 * @return Returns the _raw_ status bytes (not shifted) with current status. Refer to manual for bit mask values.
 	 */
-	uint16_t driver::get_status( unsigned char address )
+	uint32_t driver::get_status( unsigned char address )
 	{
 		// Documentation just says response is: [Status, CRC(2 bytes)]. 
 		// Status "Apparently" is 4 bytes even though the values only use two bytes.
-		// I _assume_ that is is the two least significant bytes - i.e. the two first bytes received.
 		unsigned char rx_buffer[4];
 
 		// FIXME: CRC error on next call
@@ -261,7 +260,7 @@ namespace roboclaw {
 		value += rx_buffer[0] << 8;
 		value += rx_buffer[1];
 
-		return value;
+		return (uint32_t)value;
 	}
 
 
