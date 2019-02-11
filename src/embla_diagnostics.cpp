@@ -66,8 +66,9 @@ namespace embla_hardware
 		stat.add( "Logic voltage", msg_.logic_voltage );
 		stat.add( "Motor 1 current", msg_.motor1_current );
 		stat.add( "Motor 2 current", msg_.motor2_current );
-		stat.addf( "Raw status: 0x%04x", msg_.status );
+		stat.addf( "Raw status", "0x%04x", msg_.status );
 
+		stat.summary( diagnostic_msgs::DiagnosticStatus::OK, "EMCU OK" );
 		if( msg_.status & 0x0001 )
 			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "M1 OverCurrent" );
 		if( msg_.status & 0x0002 )
@@ -75,7 +76,7 @@ namespace embla_hardware
 		if( msg_.status & 0x0004 )
 			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "E-Stop" );
 		if( msg_.status & 0x0008 )
-			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Temperatur 1" );
+			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Temperature 1" );
 		if( msg_.status & 0x0010 )
 			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Temperature 2" );
 		if( msg_.status & 0x0020 )
