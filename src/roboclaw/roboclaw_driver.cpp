@@ -127,14 +127,14 @@ namespace roboclaw {
 
 			if( crc_calculated != crc_received ) {
 				std::ostringstream description;
-				description << "Roboclaw CRC mismatch for command " << command 
+				description << "Roboclaw CRC mismatch for command " << (uint8_t)command 
 							<< std::uppercase << std::setw(4) << std::hex
 							<< ", calc CRC: 0x" << crc_calculated
 							<< ", recvd CRC: 0x" << crc_received;
 				
-				description << ", data recvd: " << std::setw(2);
+				description << ", data recvd: ";
 				for( int i = 0; i < bytes_received-2; i++ )
-					description << response[ i ];
+					description << std::hex << std::setw(2) << response[ i ];
 
 				throw roboclaw::crc_exception( description.str() );
 //				throw roboclaw::crc_exception( "CRC error in read data." );

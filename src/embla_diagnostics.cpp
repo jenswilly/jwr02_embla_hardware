@@ -48,7 +48,7 @@ namespace embla_hardware
 			msg_.motor2_current = currents.second;
 		}
 		catch( roboclaw::crc_exception ) {
-			ROS_ERROR( "CRC error from Roboclaw – ignoring diagnostics" );
+			ROS_ERROR( "CRC error from Roboclaw - ignoring diagnostics" );
 			stat.summary( diagnostic_msgs::DiagnosticStatus::WARN, "EMCU CRC error" );
 			return;
 		}
