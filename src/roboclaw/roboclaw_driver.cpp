@@ -129,12 +129,12 @@ namespace roboclaw {
 				std::ostringstream description;
 				description << "Roboclaw CRC mismatch for command " << (int)command 
 							<< std::uppercase 
-							<< std::setfill('0') << std::setw(4) << std::hex << ", calc CRC: 0x" << crc_calculated
-							<< std::setfill('0') << std::setw(4) << std::hex << ", recvd CRC: 0x" << crc_received;
+							<< ", calc CRC: 0x" << std::hex << std::setw(4) << std::setfill('0') << crc_calculated
+							<< ", recvd CRC: 0x" << std::hex << std::setw(4) << std::setfill('0') << crc_received;
 				
 				description << ", data recvd: ";
 				for( int i = 0; i < bytes_received-2; i++ )
-					description << std::setfill('0') << std::setw(2) << std::hex << (int)response[i ];
+					description << std::hex << std::setw(2) << std::setfill('0') << (int)response[i ];
 
 				throw roboclaw::crc_exception( description.str() );
 //				throw roboclaw::crc_exception( "CRC error in read data." );
@@ -397,7 +397,7 @@ namespace roboclaw {
 
 	std::pair<double, double> driver::get_currents( unsigned char address )
 	{
-		unsigned char rx_buffer[2];
+		unsigned char rx_buffer[4];
 
 		txrx( address, 49, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
 
@@ -414,6 +414,6 @@ namespace roboclaw {
 		i2 = (double)value / 100.0;
 
 		// Divide by 10 and return as double
-		return std::pair<double, double> = (i1, i2);
+		return std::pair<double, double>(i1, i2);
 	}
 }
