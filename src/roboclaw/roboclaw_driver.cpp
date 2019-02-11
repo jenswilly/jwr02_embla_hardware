@@ -247,14 +247,21 @@ namespace roboclaw {
 	 * @param address Roboclaw address
 	 * @return Returns a 16 bit mask with current status. Refer to manual for bit mask values.
 	 */
-	uint8_t driver::get_status( unsigned char address )
+	uint16_t driver::get_status( unsigned char address )
 	{
-		unsigned char rx_buffer[1];
+		// Documentation just says response is: [Status, CRC(2 bytes)]. 
+		// Status "Apparently" is 4 bytes even though the values only use two bytes.
+		// I _assume_ that is is the two least significant bytes - i.e. the two first bytes received.
+		unsigned char rx_buffer[4];
 
 		// FIXME: CRC error on next call
 		txrx( address, 90, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
 
-		return rx_buffer[0];
+		uint16_t value = 0;
+		value += rx_buffer[0] << 8;
+		value += rx_buffer[1];
+
+		return value;
 	}
 
 
