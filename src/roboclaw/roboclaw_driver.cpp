@@ -382,11 +382,38 @@ namespace roboclaw {
 
 	double driver::get_temperature1( unsigned char address )
 	{
-		return 0;
+		unsigned char rx_buffer[2];
+
+		txrx( address, 82, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+
+		// Convert from MSB first
+		uint16_t value = 0;
+		value += rx_buffer[0] << 8;
+		value += rx_buffer[1];
+
+		// Divide by 10 and return as double
+		return (double)value / 10.0;
 	}
 
 	std::pair<double, double> driver::get_currents( unsigned char address )
 	{
-		return std::pair<double, double>( 0, 0 );
+		unsigned char rx_buffer[2];
+
+		txrx( address, 49, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
+
+		double i1, i2;
+
+		// Convert from MSB first
+		uint16_t value = 0;
+		value += rx_buffer[0] << 8;
+		value += rx_buffer[1];
+		i1 = (double)value / 100.0;
+
+		value = rx_buffer[2] << 8;
+		value += rx_buffer[3];
+		i2 = (double)value / 100.0;
+
+		// Divide by 10 and return as double
+		return std::pair<double, double> = (i1, i2);
 	}
 }

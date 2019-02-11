@@ -38,12 +38,18 @@ namespace embla_hardware
 	void EmblaEMCUDiagnosticTask::run( diagnostic_updater::DiagnosticStatusWrapper &stat )
 	{
 		// Update from hardware
+		msg_.status = 0x0000;
+//		msg_.battery_voltage = 10.0;
+//		msg_.logic_voltage = 3.0;
+//		msg_.temperature = 20.0;
+//		std::pair<double, double> currents( 1, 1 );
+
 		try {
-			msg_.status = roboclaw_.get_status( roboclawAddress_ );
+			//msg_.status = roboclaw_.get_status( roboclawAddress_ );
 			msg_.battery_voltage = roboclaw_.get_battery_voltage( roboclawAddress_ );
 			msg_.logic_voltage = roboclaw_.get_logic_voltage( roboclawAddress_ );
-			msg_.temperature = roboclaw_.get_temperature1( roboclawAddress_ );      // TODO: temp
-			std::pair<double, double> currents = roboclaw_.get_currents( roboclawAddress_ );        // TODO: temp
+			msg_.temperature = roboclaw_.get_temperature1( roboclawAddress_ );
+			std::pair<double, double> currents = roboclaw_.get_currents( roboclawAddress_ );
 			msg_.motor1_current = currents.first;
 			msg_.motor2_current = currents.second;
 		}
@@ -53,12 +59,6 @@ namespace embla_hardware
 			return;
 		}
 		// Other exceptions will be thrown
-
-//		msg_.status = 0x0000;
-//		msg_.battery_voltage = 10.0;
-//		msg_.logic_voltage = 3.0;
-//		msg_.temperature = 20.0;
-//		std::pair<double, double> currents( 1, 1 );
 
 		stat.add( "Status", msg_.status );
 		stat.add( "Temperature", msg_.temperature );
