@@ -247,19 +247,14 @@ namespace roboclaw {
 	 * @param address Roboclaw address
 	 * @return Returns a 16 bit mask with current status. Refer to manual for bit mask values.
 	 */
-	uint16_t driver::get_status( unsigned char address )
+	uint8_t driver::get_status( unsigned char address )
 	{
-		unsigned char rx_buffer[2];
+		unsigned char rx_buffer[1];
 
 		// FIXME: CRC error on next call
 		txrx( address, 90, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
 
-		// Convert from MSB first
-		uint16_t status = 0;
-		status += rx_buffer[0] << 8;
-		status += rx_buffer[1];
-
-		return (uint16_t)status;
+		return rx_buffer[0];
 	}
 
 
