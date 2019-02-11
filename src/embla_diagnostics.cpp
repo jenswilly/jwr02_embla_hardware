@@ -66,38 +66,8 @@ namespace embla_hardware
 		stat.add( "Logic voltage", msg_.logic_voltage );
 		stat.add( "Motor 1 current", msg_.motor1_current );
 		stat.add( "Motor 2 current", msg_.motor2_current );
+		stat.addf( "Raw status: 0x%04x", msg_.status );
 
-		/* Status codes from the manual:
-		Error Mask
-		Normal 0x00
-		M1 OverCurrent 0x01
-		M2 OverCurrent 0x02
-		E-Stop 0x04
-		Temperature 0x08
-		Main Battery High 0x10
-		Main Battery Low 0x20
-		Logic Battery High 0x40
-		Logic Battery Low 0x80
-		*/
-		stat.summary( diagnostic_msgs::DiagnosticStatus::OK, "EMCU Status OK" );
-		if( msg_.status & 0x01 )
-			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "M1 OverCurrent" );
-		if( msg_.status & 0x02 )
-			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "M2 OverCurrent" );
-		if( msg_.status & 0x04 )
-			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "E-Stop" );
-		if( msg_.status & 0x08 )
-			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Temperature" );
-		if( msg_.status & 0x10 )
-			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Main battery high" );
-		if( msg_.status & 0x20 )
-			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Main battery low" );
-		if( msg_.status & 0x40 )
-			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Logic battery high" );
-		if( msg_.status & 0x80 )
-			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::ERROR, "Logic battery low" );
-
-		/*
 		if( msg_.status & 0x0001 )
 			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "M1 OverCurrent" );
 		if( msg_.status & 0x0002 )
@@ -130,6 +100,5 @@ namespace embla_hardware
 			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "M1 Home" );
 		if( msg_.status & 0x8000 )
 			stat.mergeSummary( diagnostic_msgs::DiagnosticStatus::WARN, "M2 Home" );
-		*/
 	}
 }       // namespace embla_hardware
