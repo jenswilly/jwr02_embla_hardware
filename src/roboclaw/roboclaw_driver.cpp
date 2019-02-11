@@ -245,7 +245,7 @@ namespace roboclaw {
 	/**
 	 * @brief Read Status (command 90)
 	 * @param address Roboclaw address
-	 * @return Returns the _raw_ status bytes (not shifted) with current status. Refer to manual for bit mask values.
+	 * @return Returns the status bytes (shifted LSB -> MSB) with current status. Refer to manual for bit mask values.
 	 */
 	uint32_t driver::get_status( unsigned char address )
 	{
@@ -256,11 +256,13 @@ namespace roboclaw {
 		// FIXME: CRC error on next call
 		txrx( address, 90, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
 
-		uint16_t value = 0;
-		value += rx_buffer[0] << 8;
-		value += rx_buffer[1];
-
-		return (uint32_t)value;
+		uint32_t value = 0;
+		value |= rx_buffer[0] << 24;
+		value |= rx_buffer[1] << 16;
+		value |= rx_buffer[2] << 8;
+		value |= rx_buffer[3];
+		
+		return (uint32_t)rx_buffer;
 	}
 
 
