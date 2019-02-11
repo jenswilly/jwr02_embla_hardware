@@ -137,6 +137,7 @@ namespace roboclaw {
 					description << response[ i ];
 
 				throw roboclaw::crc_exception( description.str() );
+//				throw roboclaw::crc_exception( "CRC error in read data." );
 			}
 
 			memcpy( rx_data, &response[0], bytes_received - 2 );
