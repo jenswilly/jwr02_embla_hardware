@@ -126,18 +126,7 @@ namespace roboclaw {
 			crc_received += response[bytes_received - 1];
 
 			if( crc_calculated != crc_received ) {
-				std::ostringstream description;
-				description << "Roboclaw CRC mismatch for command " << (int)command 
-							<< std::uppercase 
-							<< ", calc CRC: 0x" << std::hex << std::setw(4) << std::setfill('0') << crc_calculated
-							<< ", recvd CRC: 0x" << std::hex << std::setw(4) << std::setfill('0') << crc_received;
-				
-				description << ", data recvd: ";
-				for( int i = 0; i < bytes_received-2; i++ )
-					description << std::hex << std::setw(2) << std::setfill('0') << (int)response[i ];
-
-				throw roboclaw::crc_exception( description.str() );
-//				throw roboclaw::crc_exception( "CRC error in read data." );
+				throw roboclaw::crc_exception( "CRC error in read data." );
 			}
 
 			memcpy( rx_data, &response[0], bytes_received - 2 );
@@ -250,10 +239,9 @@ namespace roboclaw {
 	uint32_t driver::get_status( unsigned char address )
 	{
 		// Documentation just says response is: [Status, CRC(2 bytes)]. 
-		// Status "Apparently" is 4 bytes even though the values only use two bytes.
+		// But real info is here: http://forums.basicmicro.com/viewtopic.php?f=2&t=806
 		unsigned char rx_buffer[4];
 
-		// FIXME: CRC error on next call
 		txrx( address, 90, nullptr, 0, rx_buffer, sizeof(rx_buffer), false, true );
 
 		uint32_t value = 0;
@@ -261,7 +249,7 @@ namespace roboclaw {
 		value |= rx_buffer[1] << 16;
 		value |= rx_buffer[2] << 8;
 		value |= rx_buffer[3];
-		
+
 		return value;
 	}
 
