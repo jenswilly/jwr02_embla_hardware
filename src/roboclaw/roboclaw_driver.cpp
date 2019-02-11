@@ -262,7 +262,7 @@ namespace roboclaw {
 		value |= rx_buffer[2] << 8;
 		value |= rx_buffer[3];
 		
-		return (uint32_t)rx_buffer;
+		return value;
 	}
 
 
