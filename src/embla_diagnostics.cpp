@@ -44,6 +44,8 @@ namespace embla_hardware
 			msg_.logic_voltage = roboclaw_.get_logic_voltage( roboclawAddress_ );
 			msg_.temperature = roboclaw_.get_temperature1( roboclawAddress_ );      // TODO: temp
 			std::pair<double, double> currents = roboclaw_.get_currents( roboclawAddress_ );        // TODO: temp
+			msg_.motor1_current = currents.first;
+			msg_.motor2_current = currents.second;
 		}
 		catch( roboclaw::crc_exception ) {
 			ROS_ERROR( "CRC error from Roboclaw – ignoring diagnostics" );
@@ -57,9 +59,6 @@ namespace embla_hardware
 //		msg_.logic_voltage = 3.0;
 //		msg_.temperature = 20.0;
 //		std::pair<double, double> currents( 1, 1 );
-
-		msg_.motor1_current = currents.first;
-		msg_.motor2_current = currents.second;
 
 		stat.add( "Status", msg_.status );
 		stat.add( "Temperature", msg_.temperature );
