@@ -20,7 +20,7 @@ embla_velocity_controller:
   enable_odom_tf: true
 
   # Roboclaw driver provides wheel velocities
-  estimate_velocity_from_position: true
+  estimate_velocity_from_position: false
 
   # Wheel separation and radius multipliers
   wheel_separation : 0.1875
