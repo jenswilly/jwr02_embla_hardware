@@ -13,19 +13,19 @@ embla_velocity_controller:
   velocity_rolling_window_size: 2
 
   # Base frame_id
-  base_frame_id: base_link
+  base_frame_id: base_footprint
 
   # Odometry fused with IMU is published by robot_localization, so no need to publish a TF based on encoders alone.
   # --> robot_localization not implemented yet, so yes publish odom and tf. -JWJ
   enable_odom_tf: true
 
   # Roboclaw driver provides wheel velocities
-  estimate_velocity_from_position: false
+  estimate_velocity_from_position: true
 
   # Wheel separation and radius multipliers
   wheel_separation : 0.1875
   wheel_radius : 0.04
-  # wheel_separation_multiplier: 1.0 # default: 1.0
+  # wheel_separation_multiplier: 1.1 # default: 1.0
   # wheel_radius_multiplier    : 1.0 # default: 1.0
 
   # Velocity and acceleration limits
