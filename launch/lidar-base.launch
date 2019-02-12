@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- Not using Clearpath's cmd_vel_mux for now (but we should). SBUS output is remapped raw to cmd_vel -->
+	<remap from="/output/sbus/cmd_vel" to="/embla_velocity_controller/cmd_vel"/>
+	
+	<!-- Launch diagnostics aggregator -->
+	<node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" output="screen">
+		<rosparam command="load" file="$(find embla_hardware)/config/diagnostics.yaml"/>
+	</node>
+	
+	<!-- Launch I2C service -->
+	<node name="i2c_service" pkg="i2c_service" type="i2c_service" output="screen"/>
+	
+	<!-- Launch SBUS serial and SBUS_cmd_vel nodes -->
+	<node pkg="sbus_serial" type="sbus_serial_node" name="sbus_node" output="screen">
+		<param name="port" value="/dev/ttyTHS2"/>
+		<param name="refresh_rate_hz" value="10"/>
+		<param name="rxMinValue" value="172"/>
+		<param name="rxMaxValue" value="1811"/>
+		<param name="outMinValue" value="-100"/>
+		<param name="outMaxValue" value="100"/>
+		<param name="silentOnFailsafe" value="true"/>
+		<!-- To only publish messages when a specific channel is within a certain range, use the following three parameters -->
+		<!--
+		The enableChannelNum is the channel number to check. Note, this is the channel number, not the array index. So channel 1 is "1" and not "0".
+		If enableChannelNum is set to -1 or 0 or higher than 16, no check is performed.
+		Set enableChannelProportionalMin and enableChannelProportionalMax to the "proportional values" within which publishing is enabled.
+		Example: to publish only if channel 5 is above 50%:
+			<param name="enableChannelNum" value="5" />
+			<param name="enableChannelProportionalMin" type="double" value="0.5" />
+			<param name="enableChannelProportionalMax" type="double" value="1.0" />
+		-->
+		<param name="enableChannelNum" value="6"/>
+		<param name="enableChannelProportionalMin" type="double" value="0.5"/>
+		<param name="enableChannelProportionalMax" type="double" value="1.0"/>
+	</node>
+	
+	<node pkg="sbus_serial" type="sbus_cmd_vel_node" name="sbus_cmd_vel" output="screen">
+		<param name="sbusMinValue" value="-100"/>
+		<param name="sbusMaxValue" value="100"/>
+		<param name="maxSpeed" value="1.8"/>
+		<param name="maxTurn" value="18"/>
+	</node>
+	
+	<node pkg="embla_controller" type="diagnostics_led" name="diagnostics_led" />  <!-- TODO: this should be moved to the hardware package -->
+	<!-- ^^ old stuff ­­­| new stuff vv  -->
+
+	<!-- Harware driver -->
+	<node pkg="embla_hardware" type="embla_hardware_node" name="embla_hardware_node" output="screen">
+		<rosparam subst_value="true">
+            control_frequency: 10.0
+            diagnostic_frequency: 1.0
+
+            max_acceleration: 2.0
+            max_speed: 1.8
+            wheel_diameter: 0.08
+            pulses_per_rev: 990
+            polling_timeout: 10.0
+        </rosparam>
+	</node>
+	
+	<!-- Load robot description -->
+	<param name="robot_description" command="$(find xacro)/xacro '$(find embla_description)/urdf/embla.xacro' --inorder"/>
+	
+	<!-- Load controller configuration -->
+	<rosparam command="load" file="$(find embla_hardware)/config/controllers.yaml"/>
+	
+	<!-- Spawn our own controllers. Names must match names in control config file -->
+	<node name="base_controller_spawner" pkg="controller_manager" type="spawner" args="embla_joint_publisher embla_velocity_controller"/>
+	
+	<!-- Publish static transforms from URDF and updated transforms from joint states -->
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>	<!-- state_publisher is the "old name" -->
+
+	<!-- RPLidar -->
+	<node name="rplidarNode" pkg="rplidar_ros" type="rplidarNode" output="screen">
+		<param name="serial_port" type="string" value="/dev/ttyS0"/>
+		<param name="serial_baudrate" type="int" value="115200"/>
+		<param name="frame_id" type="string" value="lidar_link"/>
+		<param name="inverted" type="bool" value="false"/>
+		<param name="angle_compensate" type="bool" value="true"/>
+	</node>
+	
+	<!-- Launch rviz with: rosrun rviz rviz --> 
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find rplidar_ros)/rviz/rplidar.rviz"/>
+</launch>
