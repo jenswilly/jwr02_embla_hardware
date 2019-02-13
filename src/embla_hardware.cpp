@@ -78,6 +78,8 @@ namespace embla_hardware
 		joints_[ 1 ].position_offset = encoderPulsesToAngular( encoders.second );
 		joints_[ 2 ].position_offset = encoderPulsesToAngular( encoders.first );
 		joints_[ 3 ].position_offset = encoderPulsesToAngular( encoders.second );
+		
+		ROS_INFO_STREAM( "Initial encoder values: L=" << encoders.first << ", R=" << encoders.second << ". radL=" << joints_[0].position_offset << ", radR=" << joints_[1].position_offset );
 	}
 
 	/**
@@ -155,6 +157,8 @@ namespace embla_hardware
 			std::pair<int, int> speeds = roboclaw_.get_velocity( ROBOCLAW_ADDRESS );
 			for( int i = 0; i < 4; i++ )
 				joints_[ i ].velocity = encoderPulsesToAngular( (i % 2 == 0 ? speeds.first : speeds.second) );
+				
+			ROS_INFO_STREAM( "Updated encoders: L=" << encoders.first << ", R=" << encoders.second << ". radL=" << joints_[0].position << ", radR=" << joints_[1].position << ". vL=" << speeds.first << ", vR=" << speeds.second << ". vLrad=" << joints_[0].velocity << ", vRrad=" << joints_[1].velocity );
 
 		} catch( timeout_exception ex ) {
 			ROS_ERROR_STREAM( "Roboclaw timeout error in updateJointsFromHardware: " << ex.what() );
