@@ -47,20 +47,6 @@
 	
 	<node pkg="embla_controller" type="diagnostics_led" name="diagnostics_led" />  <!-- TODO: this should be moved to the hardware package -->
 	<!-- ^^ old stuff ­­­| new stuff vv  -->
-
-	<!-- Harware driver -->
-	<node pkg="embla_hardware" type="embla_hardware_node" name="embla_hardware_node" output="screen">
-		<rosparam subst_value="true">
-            control_frequency: 10.0
-            diagnostic_frequency: 1.0
-
-            max_acceleration: 2.0
-            max_speed: 1.8
-            wheel_diameter: 0.08
-            pulses_per_rev: 3960
-            polling_timeout: 10.0
-        </rosparam>
-	</node>
 	
 	<!-- Load robot description -->
 	<param name="robot_description" command="$(find xacro)/xacro '$(find embla_description)/urdf/embla.xacro' --inorder"/>
@@ -68,7 +54,7 @@
 	<!-- Load controller configuration -->
 	<rosparam command="load" file="$(find embla_hardware)/config/controllers.yaml"/>
 	
-	<!-- Spawn our own controllers. Names must match names in control config file -->
+	<!-- Spawn controllers. Names must match names in control config file -->
 	<node name="base_controller_spawner" pkg="controller_manager" type="spawner" args="embla_joint_publisher embla_velocity_controller"/>
 	
 	<!-- Publish static transforms from URDF and updated transforms from joint states -->
@@ -83,6 +69,20 @@
 		<param name="angle_compensate" type="bool" value="true"/>
 	</node>
 	
+	<!-- Harware driver -->
+	<node pkg="embla_hardware" type="embla_hardware_node" name="embla_hardware_node" output="screen">
+		<rosparam subst_value="true">
+            control_frequency: 10.0
+            diagnostic_frequency: 1.0
+
+            max_acceleration: 2.0
+            max_speed: 1.8
+            wheel_diameter: 0.08
+            pulses_per_rev: 3960
+            polling_timeout: 10.0
+        </rosparam>
+	</node>
+
 	<!-- Launch rviz with: rosrun rviz rviz --> 
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find rplidar_ros)/rviz/rplidar.rviz"/>
 </launch>
