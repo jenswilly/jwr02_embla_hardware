@@ -72,6 +72,7 @@ namespace embla_hardware
 	*/
 	void EmblaHardware::resetTravelOffset()
 	{
+		roboclaw_.reset_encoders( ROBOCLAW_ADDRESS );
 		std::pair<int, int> encoders = roboclaw_.get_encoders( ROBOCLAW_ADDRESS );
 
 		joints_[ 0 ].position_offset = encoderPulsesToAngular( encoders.first );

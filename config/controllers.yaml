@@ -23,9 +23,9 @@ embla_velocity_controller:
   estimate_velocity_from_position: false
 
   # Wheel separation and radius multipliers
-  wheel_separation : 0.1875
-  wheel_radius : 0.04
-  # wheel_separation_multiplier: 1.1 # default: 1.0
+  wheel_separation: 0.1875
+  wheel_radius: 0.04
+  # wheel_separation_multiplier: 1.0 # default: 1.0
   # wheel_radius_multiplier    : 1.0 # default: 1.0
 
   # Velocity and acceleration limits
@@ -33,12 +33,12 @@ embla_velocity_controller:
   linear:
     x:
       has_velocity_limits    : true
-      max_velocity           : 1.8  # m/s
+      max_velocity           : 0.457  # m/s
       has_acceleration_limits: true
-      max_acceleration       : 2  # m/s^2
+      max_acceleration       : 0.5  # m/s^2
   angular:
     z:
       has_velocity_limits    : true
-      max_velocity           : 18  # rad/s
+      max_velocity           : 5  # rad/s
       has_acceleration_limits: true
-      max_acceleration       : 18  # rad/s^2
+      max_acceleration       : 5  # rad/s^2
