@@ -39,7 +39,7 @@
 		<param name="sbusMinValue" value="-100"/>
 		<param name="sbusMaxValue" value="100"/>
 		<param name="maxSpeed" value="1"/>
-		<param name="maxTurn" value="9"/>
+		<param name="maxTurn" value="3"/>
 	</node>
 	
 	<node pkg="embla_controller" type="diagnostics_led" name="diagnostics_led" />  <!-- TODO: this should be moved to the hardware package -->

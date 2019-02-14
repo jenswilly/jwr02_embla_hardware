@@ -31,7 +31,7 @@
 		<param name="sbusMinValue" value="-100"/>
 		<param name="sbusMaxValue" value="100"/>
 		<param name="maxSpeed" value="1"/>
-		<param name="maxTurn" value="9"/>
+		<param name="maxTurn" value="3"/>
 	</node>
 
 	<!-- Harware driver -->

@@ -39,6 +39,6 @@ embla_velocity_controller:
   angular:
     z:
       has_velocity_limits    : true
-      max_velocity           : 9  # rad/s
+      max_velocity           : 3  # rad/s
       has_acceleration_limits: true
-      max_acceleration       : 9  # rad/s^2
+      max_acceleration       : 3  # rad/s^2
