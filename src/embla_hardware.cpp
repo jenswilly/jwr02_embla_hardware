@@ -49,8 +49,8 @@ namespace embla_hardware
 		emcu_status_task_( embla_emcu_status_msg_, roboclaw_, ROBOCLAW_ADDRESS )
 	{
 		private_nh_.param<double>( "wheel_diameter", wheel_diameter_, 0.08 );
-		private_nh_.param<double>( "max_accel", max_accel_, 2.0 );
-		private_nh_.param<double>( "max_speed", max_speed_, 1.8 );    // Note: this is in m/s and is used _after_ converting from rad/s -> m/s
+		private_nh_.param<double>( "max_accel", max_accel_, 1 );
+		private_nh_.param<double>( "max_speed", max_speed_, 1 );    // Note: this is in m/s and is used _after_ converting from rad/s -> m/s
 		private_nh_.param<double>( "polling_timeout_", polling_timeout_, 10.0 );
 		private_nh_.param<double>( "pulses_per_rev", pulsesPerRev_, 990 );    // 990 pulses per rev. is default for the Embla motors
 

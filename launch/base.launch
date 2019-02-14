@@ -38,8 +38,8 @@
 	<node pkg="sbus_serial" type="sbus_cmd_vel_node" name="sbus_cmd_vel" output="screen">
 		<param name="sbusMinValue" value="-100"/>
 		<param name="sbusMaxValue" value="100"/>
-		<param name="maxSpeed" value="1.8"/>
-		<param name="maxTurn" value="18"/>
+		<param name="maxSpeed" value="1"/>
+		<param name="maxTurn" value="9"/>
 	</node>
 	
 	<node pkg="embla_controller" type="diagnostics_led" name="diagnostics_led" />  <!-- TODO: this should be moved to the hardware package -->
@@ -51,8 +51,8 @@
             control_frequency: 10.0
             diagnostic_frequency: 1.0
 
-            max_acceleration: 2.0
-            max_speed: 1.8
+            max_acceleration: 1
+            max_speed: 1
             wheel_diameter: 0.08
             pulses_per_rev: 990
             polling_timeout: 10.0
