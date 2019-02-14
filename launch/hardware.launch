@@ -43,7 +43,7 @@
             max_acceleration: 1
             max_speed: 1
             wheel_diameter: 0.08
-            pulses_per_rev: 990
+            pulses_per_rev: 3960
             polling_timeout: 10.0
         </rosparam>
 	</node>
