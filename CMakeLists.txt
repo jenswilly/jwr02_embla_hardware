@@ -34,10 +34,10 @@ include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_compile_options(-std=c++11)
 
-# Roboclaw driver library
+# Library: roboclaw (used in embla_hardware_node)
 add_library(roboclaw src/roboclaw/roboclaw_driver.cpp src/roboclaw/TimeoutSerial.cpp)
 
-# embla_hardware_node
+# Node: embla_hardware_node
 add_executable(embla_hardware_node
   src/embla_hardware_node.cpp
   src/embla_hardware.cpp
@@ -48,7 +48,7 @@ add_dependencies( embla_hardware_node
 	${catkin_EXPORTED_TARGETS} 
 )
 
-## diagnostics_led node
+## Node: diagnostics_led
 add_executable( diagnostics_led src/diagnostics_led.cpp )
 target_link_libraries( diagnostics_led ${catkin_LIBRARIES} )
 add_dependencies(
