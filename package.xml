@@ -1,35 +1,37 @@
 <?xml version="1.0"?>
-<package>
-  <name>embla_hardware</name>
-  <version>0.9.0</version>
-  <description>JWRobotics Embla robot controller/driver</description>
+<package format="2">
+	<name>embla_hardware</name>
+	<version>0.9.0</version>
+	<description>JWRobotics JWR-01 Embla robot controller/driver/hardware interface</description>
 
-  <author email="jens@jwrobotics.com">Jens Willy Johannsen</author>
-  <maintainer email="jens@jwrobotics.com">Jens Willy Johannsen</maintainer>
+	<author email="jens@jwrobotics.com">Jens Willy Johannsen</author>
+	<maintainer email="jens@jwrobotics.com">Jens Willy Johannsen</maintainer>
 
-  <license>BSD</license>
+	<license>MIT</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
+	<buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>controller_manager</build_depend>
-  <build_depend>diagnostic_updater</build_depend>
-  <build_depend>diagnostic_msgs</build_depend>
-  <build_depend>hardware_interface</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>roslaunch</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>message_generation</build_depend>
-  <build_depend>std_msgs</build_depend>
+	<build_depend>controller_manager</build_depend>
+	<build_depend>diagnostic_updater</build_depend>
+	<build_depend>diagnostic_msgs</build_depend>
+	<build_depend>hardware_interface</build_depend>
+	<build_depend>roscpp</build_depend>
+	<build_depend>roslaunch</build_depend>
+	<build_depend>sensor_msgs</build_depend>
+	<build_depend>message_generation</build_depend>
+	<build_depend>std_msgs</build_depend>
+	<build_depend>i2c_service</build_depend> <!-- For LED updates -->
 
-  <run_depend>controller_manager</run_depend>
-  <run_depend>diagnostic_updater</run_depend>
-  <run_depend>diagnostic_msgs</run_depend>
-  <run_depend>diagnostic_aggregator</run_depend>
-  <run_depend>diff_drive_controller</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>hardware_interface</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>message_runtime</run_depend>
-  <run_depend>std_msgs</run_depend>
+	<exec_depend>controller_manager</exec_depend>
+	<exec_depend>diagnostic_updater</exec_depend>
+	<exec_depend>diagnostic_msgs</exec_depend>
+	<exec_depend>diagnostic_aggregator</exec_depend>
+	<exec_depend>diff_drive_controller</exec_depend>
+	<exec_depend>geometry_msgs</exec_depend>
+	<exec_depend>hardware_interface</exec_depend>
+	<exec_depend>roscpp</exec_depend>
+	<exec_depend>sensor_msgs</exec_depend>
+	<exec_depend>message_runtime</exec_depend>
+	<exec_depend>std_msgs</exec_depend>
+	<exec_depend>i2c_service</exec_depend>
 </package>
