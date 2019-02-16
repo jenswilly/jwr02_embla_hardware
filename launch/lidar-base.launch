@@ -58,7 +58,7 @@
 	<node name="base_controller_spawner" pkg="controller_manager" type="spawner" args="embla_joint_publisher embla_velocity_controller"/>
 	
 	<!-- Publish static transforms from URDF and updated transforms from joint states -->
-	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>	<!-- state_publisher is the "old name" -->
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
 	<!-- RPLidar -->
 	<node name="rplidarNode" pkg="rplidar_ros" type="rplidarNode" output="screen">
@@ -84,5 +84,5 @@
 	</node>
 
 	<!-- Launch rviz with: rosrun rviz rviz --> 
-	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find rplidar_ros)/rviz/rplidar.rviz"/>
+	<!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rplidar_ros)/rviz/rplidar.rviz"/> -->
 </launch>
