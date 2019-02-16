@@ -41,8 +41,8 @@
 	<node pkg="sbus_serial" type="sbus_cmd_vel_node" name="sbus_cmd_vel" output="screen">
 		<param name="sbusMinValue" value="-100"/>
 		<param name="sbusMaxValue" value="100"/>
-		<param name="maxSpeed" value="1.8"/>
-		<param name="maxTurn" value="18"/>
+		<param name="maxSpeed" value="1"/>
+		<param name="maxTurn" value="9"/>
 	</node>
 	
 	<node pkg="embla_hardware" type="diagnostics_led" name="diagnostics_led" />
