@@ -45,7 +45,7 @@
 		<param name="maxTurn" value="18"/>
 	</node>
 	
-	<node pkg="embla_controller" type="diagnostics_led" name="diagnostics_led" />  <!-- TODO: this should be moved to the hardware package -->
+	<node pkg="embla_hardware" type="diagnostics_led" name="diagnostics_led" />
 	<!-- ^^ old stuff ­­­| new stuff vv  -->
 	
 	<!-- Load robot description -->
