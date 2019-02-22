@@ -68,7 +68,7 @@ class DiagnosticLEDUpdater
 	void diagnosticsCallback( const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg )
 	{
 		// Preserve the curent status of everything except orange, red and green LEDs
-		uint8_t value = ledValue_ & 0xF2;
+		uint8_t value = ledValue_ & 0xF8;
 
 		switch( msg->level ) {
 		case diagnostic_msgs::DiagnosticStatus::STALE:
