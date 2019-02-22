@@ -5,7 +5,7 @@
 
 	<!-- Launch SBUS serial and SBUS_cmd_vel nodes -->
 	<node pkg="sbus_serial" type="sbus_serial_node" name="sbus_node" output="screen">
-		<param name="port" value="/dev/ttyTHS2"/>
+		<param name="port" value="/dev/ttyS0"/>
 		<param name="refresh_rate_hz" value="10"/>
 		<param name="rxMinValue" value="172"/>
 		<param name="rxMaxValue" value="1811"/>

@@ -19,7 +19,7 @@
 	
 	<!-- Launch SBUS serial and SBUS_cmd_vel nodes -->
 	<node pkg="sbus_serial" type="sbus_serial_node" name="sbus_node" output="screen">
-		<param name="port" value="/dev/ttyTHS2"/>
+		<param name="port" value="/dev/ttyS0"/>
 		<param name="refresh_rate_hz" value="10"/>
 		<param name="rxMinValue" value="172"/>
 		<param name="rxMaxValue" value="1811"/>
@@ -62,7 +62,7 @@
 	
 	<!-- RPLidar -->
 	<node name="rplidarNode" pkg="rplidar_ros" type="rplidarNode" output="screen">
-		<param name="serial_port" type="string" value="/dev/ttyS0"/>
+		<param name="serial_port" type="string" value="/dev/ttyTHS2"/>
 		<param name="serial_baudrate" type="int" value="115200"/>
 		<param name="frame_id" type="string" value="lidar_link"/>
 		<param name="inverted" type="bool" value="false"/>
@@ -85,6 +85,8 @@
 
 	<!-- Publish static transforms from URDF and updated transforms from joint states -->
 	<!-- Trouble with this one :( Sometime odom->base_footprint starts at != 0 and one wheel (left rear?) doesn't update. Consider moving to publishing dynamic and static transforms from hardware node (http://wiki.ros.org/robot_state_publisher/Tutorials/Using%20the%20robot%20state%20publisher%20on%20your%20own%20robot#Running_as_a_library) -->
+	<!-- Until fixed, run with 
+		rosrun robot_state_publisher robot_state_publisher -->
 	<!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen" /> -->
 
 	<!-- Launch rviz with: rosrun rviz rviz --> 
