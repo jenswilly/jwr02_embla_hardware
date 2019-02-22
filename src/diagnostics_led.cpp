@@ -36,10 +36,10 @@
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <i2c_service/I2CWriteRegisterByte.h>
 
-#define LED_ORANGE 0x01
-#define LED_BLUE 0x02
-#define LED_RED 0x04
-#define LED_GREEN 0x08
+#define LED_RED 0x01
+#define LED_GREEN 0x02
+#define LED_ORANGE 0x04
+#define LED_BLUE 0x08
 #define MAX_SBUS_INTERVAL 1.0     // Seconds before SBUS link will be considered inactive
 
 class DiagnosticLEDUpdater
