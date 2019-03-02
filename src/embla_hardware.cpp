@@ -45,7 +45,7 @@ namespace embla_hardware
 	EmblaHardware::EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq ) :
 		nh_( nh ),
 		private_nh_( private_nh ),
-		roboclaw_( "/dev/ttyACM0", 460800 ),
+		roboclaw_( "/dev/roboclaw", 460800 ),
 		emcu_status_task_( embla_emcu_status_msg_, roboclaw_, ROBOCLAW_ADDRESS )
 	{
 		private_nh_.param<double>( "wheel_diameter", wheel_diameter_, 0.08 );
