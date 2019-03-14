@@ -26,6 +26,7 @@
 
 #include "embla_hardware/embla_hardware.h"
 #include "roboclaw/roboclaw_driver.h"
+#include <robot_state_publisher/robot_state_publisher.h>
 #include <boost/assign/list_of.hpp>
 #include <math.h>
 #include <string>
@@ -42,10 +43,11 @@ namespace embla_hardware
 	/**
 	* Initialize Husky hardware
 	*/
-	EmblaHardware::EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq ) :
+	EmblaHardware::EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq, robot_state_publisher::RobotStatePublisher robotStatePublisher ) :
 		nh_( nh ),
 		private_nh_( private_nh ),
 		roboclaw_( "/dev/roboclaw", 460800 ),
+		robotStatePublisher_( robotStatePublisher ),
 		emcu_status_task_( embla_emcu_status_msg_, roboclaw_, ROBOCLAW_ADDRESS )
 	{
 		private_nh_.param<double>( "wheel_diameter", wheel_diameter_, 0.08 );
@@ -160,6 +162,8 @@ namespace embla_hardware
 				joints_[ i ].velocity = encoderPulsesToAngular( (i % 2 == 0 ? speeds.first : speeds.second) );
 				
 			// ROS_INFO_STREAM( "Updated encoders: L=" << encoders.first << ", R=" << encoders.second << ". radL=" << joints_[0].position << ", radR=" << joints_[1].position << ". vL=" << speeds.first << ", vR=" << speeds.second << ". vLrad=" << joints_[0].velocity << ", vRrad=" << joints_[1].velocity );
+
+			// Also publish tf transforms (doing robot_state_publisher's work)
 
 		} catch( timeout_exception ex ) {
 			ROS_ERROR_STREAM( "Roboclaw timeout error in updateJointsFromHardware: " << ex.what() );

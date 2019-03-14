@@ -25,7 +25,8 @@
 #include "embla_hardware/embla_hardware.h"
 #include "controller_manager/controller_manager.h"
 #include "ros/callback_queue.h"
-
+#include <robot_state_publisher/robot_state_publisher.h>
+#include <kdl_parser/kdl_parser.hpp>
 #include <boost/chrono.hpp>
 
 typedef boost::chrono::steady_clock time_source;
@@ -78,8 +79,18 @@ int main( int argc, char *argv[] )
 	private_nh.param<double>( "diagnostic_frequency", diagnostic_frequency, 1.0 );
 	private_nh.param<double>( "static_tf_frequency", diagnostic_frequency, 5.0 );
 
+	// Initialize robot state publisher
+	KDL::Tree tree;
+	std::string robot_desc_string;
+	nh.param( "robot_description", robot_desc_string, std::string() );
+	if( !kdl_parser::treeFromString( robot_desc_string, tree )) {
+		ROS_ERROR("Failed to construct KDL tree");
+		return false;
+	}
+	robot_state_publisher::RobotStatePublisher robotStatePublisher( tree );
+
 	// Initialize robot hardware and link to controller manager
-	embla_hardware::EmblaHardware embla( nh, private_nh, control_frequency );
+	embla_hardware::EmblaHardware embla( nh, private_nh, control_frequency, robotStatePublisher );
 	controller_manager::ControllerManager cm( &embla, nh );
 
 	// Setup separate queue and single-threaded spinner to process timer callbacks

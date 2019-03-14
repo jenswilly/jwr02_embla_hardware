@@ -33,6 +33,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/JointState.h"
 #include "embla_hardware/EmblaEMCUStatus.h"
+#include <robot_state_publisher/robot_state_publisher.h>
 #include <string>
 #include "roboclaw/roboclaw_driver.h"
 #include <map>
@@ -47,7 +48,7 @@ namespace embla_hardware
 		public hardware_interface::RobotHW
 	{
 	  public:
-		EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq );
+		EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq, robot_state_publisher::RobotStatePublisher robotStatePublisher );
 
 		void updateJointsFromHardware();
 
@@ -69,6 +70,7 @@ namespace embla_hardware
 
 		ros::NodeHandle nh_, private_nh_;
 		roboclaw::driver roboclaw_;
+		robot_state_publisher::RobotStatePublisher robotStatePublisher_;
 
 		// ROS Control interfaces
 		hardware_interface::JointStateInterface joint_state_interface_;

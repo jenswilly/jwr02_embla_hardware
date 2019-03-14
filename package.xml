@@ -20,7 +20,9 @@
 	<build_depend>sensor_msgs</build_depend>
 	<build_depend>message_generation</build_depend>
 	<build_depend>std_msgs</build_depend>
+	<build_depend>robot_state_publisher</build_depend>
 	<build_depend>i2c_service</build_depend> <!-- For LED updates -->
+	<build_depend>kdl_parser</build_depend>
 
 	<exec_depend>controller_manager</exec_depend>
 	<exec_depend>diagnostic_updater</exec_depend>
@@ -33,5 +35,7 @@
 	<exec_depend>sensor_msgs</exec_depend>
 	<exec_depend>message_runtime</exec_depend>
 	<exec_depend>std_msgs</exec_depend>
+	<exec_depend>robot_state_publisher</exec_depend>
 	<exec_depend>i2c_service</exec_depend>
+	<exec_depend>kdl_parser</exec_depend>
 </package>
