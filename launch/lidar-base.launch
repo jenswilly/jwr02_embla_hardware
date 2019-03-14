@@ -74,6 +74,7 @@
 		<rosparam subst_value="true">
             control_frequency: 10.0
             diagnostic_frequency: 1.0
+            static_tf_frequency: 5.0
 
             max_acceleration: 1
             max_speed: 1
