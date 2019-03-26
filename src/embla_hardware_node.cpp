@@ -63,10 +63,11 @@ void diagnosticLoop( embla_hardware::EmblaHardware &embla )
 /**
  * Publish static transforms (part of robot_state_publisher)
  * */
-void staticTfLoop( const ros::TimerEvent& )
+void staticTfLoop( robot_state_publisher::RobotStatePublisher &robotStatePublisher, std::string &tf_prefix )
 {
 	// Reading KDL tree: http://wiki.ros.org/kdl_parser/Tutorials/Start%20using%20the%20KDL%20parser
 	// Calling robot_state_publisher as library: http://wiki.ros.org/robot_state_publisher/Tutorials/Using%20the%20robot%20state%20publisher%20on%20your%20own%20robot
+	robotStatePublisher.publishFixedTransforms( tf_prefix );
 }
 
 int main( int argc, char *argv[] )
@@ -75,9 +76,14 @@ int main( int argc, char *argv[] )
 	ros::NodeHandle nh, private_nh( "~" );
 
 	double control_frequency, diagnostic_frequency, static_tf_frequency;
+	std::string tf_prefix;
+	bool publish_tf;
+
 	private_nh.param<double>( "control_frequency", control_frequency, 10.0 );
 	private_nh.param<double>( "diagnostic_frequency", diagnostic_frequency, 1.0 );
-	private_nh.param<double>( "static_tf_frequency", diagnostic_frequency, 5.0 );
+	private_nh.param<double>( "static_tf_frequency", static_tf_frequency, 5.0 );
+	private_nh.param<std::string>( "tf_prefix", tf_prefix, std::string("") );
+	private_nh.param<bool>( "publish_tf", publish_tf, false );
 
 	// Initialize robot state publisher
 	KDL::Tree tree;
@@ -99,28 +105,30 @@ int main( int argc, char *argv[] )
 	// in the control loop.
 	ros::CallbackQueue embla_queue;
 	ros::AsyncSpinner embla_spinner( 1, &embla_queue );
-
 	time_source::time_point last_time = time_source::now();
+
+	// Control manager timer loop
 	ros::TimerOptions control_timer(
 		ros::Duration( 1 / control_frequency ),
 		boost::bind( controlLoop, boost::ref( embla ), boost::ref( cm ), boost::ref( last_time )),
 		&embla_queue );
 	ros::Timer control_loop = nh.createTimer( control_timer );
 
+	// Diagnostics timer loop
 	ros::TimerOptions diagnostic_timer(
 		ros::Duration( 1 / diagnostic_frequency ),
 		boost::bind( diagnosticLoop, boost::ref( embla )),
 		&embla_queue );
 	ros::Timer diagnostic_loop = nh.createTimer( diagnostic_timer );
 
-	/*
-	ros::TimerOptions static_tf_timer(
-		ros::Duration( 1 / static_tf_frequency ),
-		boost::bind( staticTfLoop, boost::ref( embla )),
-		&embla_queue );
-	ros::Timer static_tf_loop = nh.createTimer( static_tf_timer );
-	*/
-	ros::Timer static_tf_loop = nh.createTimer( ros::Duration( 1 / static_tf_frequency ), staticTfLoop );
+	// Loop for robot_state_publisher static tf publishing
+	if( publish_tf ) {
+		ros::TimerOptions static_tf_timer(
+			ros::Duration( 1 / static_tf_frequency ),
+			boost::bind( staticTfLoop, boost::ref( robotStatePublisher ), boost::ref( tf_prefix )),
+			&embla_queue );
+		ros::Timer static_tf_loop = nh.createTimer( static_tf_timer );
+	}
 
 	embla_spinner.start();
 

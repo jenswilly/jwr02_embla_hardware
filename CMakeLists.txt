@@ -9,9 +9,12 @@ find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	sensor_msgs
 	std_msgs
-	message_generation)
+	message_generation
+	kdl_parser
+	robot_state_publisher)
 
 find_package(Boost REQUIRED COMPONENTS chrono system)
+find_package(orocos_kdl REQUIRED)
 
 add_message_files(
   FILES
@@ -26,7 +29,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES roboclaw
-  CATKIN_DEPENDS diagnostic_updater hardware_interface roscpp sensor_msgs std_msgs message_runtime i2c_service
+  CATKIN_DEPENDS diagnostic_updater hardware_interface roscpp sensor_msgs std_msgs message_runtime i2c_service robot_state_publisher
   DEPENDS Boost
 )
 

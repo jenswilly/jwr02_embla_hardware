@@ -71,6 +71,8 @@ namespace embla_hardware
 		ros::NodeHandle nh_, private_nh_;
 		roboclaw::driver roboclaw_;
 		robot_state_publisher::RobotStatePublisher robotStatePublisher_;
+		std::string tf_prefix_;
+		bool publish_tf_;
 
 		// ROS Control interfaces
 		hardware_interface::JointStateInterface joint_state_interface_;
@@ -101,7 +103,8 @@ namespace embla_hardware
 			Joint() :
 				position( 0 ), velocity( 0 ), effort( 0 ), velocity_command( 0 )
 			{ }
-		} joints_[2]; // Two joints: left and right
+		} joints_[4]; // Four joints even though we have only two encoders.
+		ros::V_string joint_names_;
 	};
 
 }  // namespace embla_hardware

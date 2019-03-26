@@ -43,7 +43,8 @@ namespace embla_hardware
 	/**
 	* Initialize Husky hardware
 	*/
-	EmblaHardware::EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq, robot_state_publisher::RobotStatePublisher robotStatePublisher ) :
+	EmblaHardware::EmblaHardware( ros::NodeHandle nh, ros::NodeHandle private_nh, double target_control_freq,
+								  robot_state_publisher::RobotStatePublisher robotStatePublisher ) :
 		nh_( nh ),
 		private_nh_( private_nh ),
 		roboclaw_( "/dev/roboclaw", 460800 ),
@@ -55,6 +56,8 @@ namespace embla_hardware
 		private_nh_.param<double>( "max_speed", max_speed_, 1 );    // Note: this is in m/s and is used _after_ converting from rad/s -> m/s
 		private_nh_.param<double>( "polling_timeout_", polling_timeout_, 10.0 );
 		private_nh_.param<double>( "pulses_per_rev", pulsesPerRev_, 990 );    // 990 pulses per rev. is default for the Embla motors
+		private_nh_.param<std::string>( "tf_prefix", tf_prefix_, std::string("") );
+		private_nh_.param<bool>( "publish_tf", publish_tf_, false );
 
 		// Wait until Roboclaw driver is ready
 		if( !roboclaw_.serial->isOpen() )
@@ -104,12 +107,12 @@ namespace embla_hardware
 	*/
 	void EmblaHardware::registerControlInterfaces()
 	{
-		ros::V_string joint_names = boost::assign::list_of( "left_front_wheel_joint" )
+		joint_names_ = boost::assign::list_of( "left_front_wheel_joint" )
 						    ( "right_front_wheel_joint" ) ( "left_rear_wheel_joint" ) ( "right_rear_wheel_joint" );
-		for( unsigned int i = 0; i < joint_names.size(); i++ )
+		for( unsigned int i = 0; i < joint_names_.size(); i++ )
 		{
 			// Create and register joint state (output to controller)
-			hardware_interface::JointStateHandle joint_state_handle( joint_names[i],
+			hardware_interface::JointStateHandle joint_state_handle( joint_names_[i],
 										 &joints_[i].position,
 										 &joints_[i].velocity,
 										 &joints_[i].effort );
@@ -118,7 +121,7 @@ namespace embla_hardware
 			// Register velocity joint (input from controller)
 			hardware_interface::JointHandle joint_handle( joint_state_handle, &joints_[i].velocity_command );
 			velocity_joint_interface_.registerHandle( joint_handle );
-			ROS_INFO_STREAM( "Control interface registered:" << joint_names[i] );
+			ROS_INFO_STREAM( "Control interface registered:" << joint_names_[i] );
 		}
 		registerInterface( &joint_state_interface_ );
 		registerInterface( &velocity_joint_interface_ );
@@ -164,7 +167,13 @@ namespace embla_hardware
 			// ROS_INFO_STREAM( "Updated encoders: L=" << encoders.first << ", R=" << encoders.second << ". radL=" << joints_[0].position << ", radR=" << joints_[1].position << ". vL=" << speeds.first << ", vR=" << speeds.second << ". vLrad=" << joints_[0].velocity << ", vRrad=" << joints_[1].velocity );
 
 			// Also publish tf transforms (doing robot_state_publisher's work)
-
+			if( publish_tf_ ) {
+			/// Continue here...
+				map<string, double> joint_positions;
+				for (unsigned int i=0; i<state->name.size(); i++) {
+					joint_positions.insert(make_pair(state->name[i], state->position[i]));
+				}
+			}
 		} catch( timeout_exception ex ) {
 			ROS_ERROR_STREAM( "Roboclaw timeout error in updateJointsFromHardware: " << ex.what() );
 			throw ex;
