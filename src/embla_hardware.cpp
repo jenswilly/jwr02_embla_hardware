@@ -107,8 +107,8 @@ namespace embla_hardware
 	*/
 	void EmblaHardware::registerControlInterfaces()
 	{
-		joint_names_ = boost::assign::list_of( "left_front_wheel_joint" )
-						    ( "right_front_wheel_joint" ) ( "left_rear_wheel_joint" ) ( "right_rear_wheel_joint" );
+//		joint_names_ = boost::assign::list_of<std::string>(std::string("left_front_wheel_joint")) (std::string("right_front_wheel_joint")) (std::string("left_rear_wheel_joint")) (std::string("right_rear_wheel_joint"));
+		joint_names_ = {std::string("left_front_wheel_joint"), std::string("right_front_wheel_joint"), std::string("left_rear_wheel_joint"), std::string("right_rear_wheel_joint")};
 		for( unsigned int i = 0; i < joint_names_.size(); i++ )
 		{
 			// Create and register joint state (output to controller)
@@ -168,11 +168,10 @@ namespace embla_hardware
 
 			// Also publish tf transforms (doing robot_state_publisher's work)
 			if( publish_tf_ ) {
-				map<std::string, double> joint_positions;
+				std::map<std::string, double> joint_positions;
 				for( unsigned int i=0; i < 4; i++ ) {
 					joint_positions.insert( make_pair( joint_names_[ i ], joints_[ i ].position ));
 				}
-
 				robotStatePublisher_.publishTransforms( joint_positions, ros::Time::now(), tf_prefix_ );
 			}
 		} catch( timeout_exception ex ) {
