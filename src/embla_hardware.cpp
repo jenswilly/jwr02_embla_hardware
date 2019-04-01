@@ -168,11 +168,12 @@ namespace embla_hardware
 
 			// Also publish tf transforms (doing robot_state_publisher's work)
 			if( publish_tf_ ) {
-			/// Continue here...
-				map<string, double> joint_positions;
-				for (unsigned int i=0; i<state->name.size(); i++) {
-					joint_positions.insert(make_pair(state->name[i], state->position[i]));
+				map<std::string, double> joint_positions;
+				for( unsigned int i=0; i < 4; i++ ) {
+					joint_positions.insert( make_pair( joint_names_[ i ], joints_[ i ].position ));
 				}
+
+				robotStatePublisher_.publishTransforms( joint_positions, ros::Time::now(), tf_prefix_ );
 			}
 		} catch( timeout_exception ex ) {
 			ROS_ERROR_STREAM( "Roboclaw timeout error in updateJointsFromHardware: " << ex.what() );
