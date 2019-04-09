@@ -124,11 +124,15 @@ int main( int argc, char *argv[] )
 
 	// Loop for robot_state_publisher static tf publishing
 	if( publish_tf ) {
+		ROS_INFO( "Scheduling fixed tf publishing." );
+
 		ros::TimerOptions static_tf_timer(
 			ros::Duration( 1 / static_tf_frequency ),
 			boost::bind( staticTfLoop, boost::ref( robotStatePublisher ), boost::ref( tf_prefix )),
 			&embla_queue );
 		ros::Timer static_tf_loop = nh.createTimer( static_tf_timer );
+	} else {
+		ROS_INFO_STREAM( "NOT scheduling fixed tf publishing. publish_tf=" << publish_tf );
 	}
 
 	embla_spinner.start();
