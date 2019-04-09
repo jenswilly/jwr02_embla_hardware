@@ -68,6 +68,7 @@ void staticTfLoop( robot_state_publisher::RobotStatePublisher &robotStatePublish
 	// Reading KDL tree: http://wiki.ros.org/kdl_parser/Tutorials/Start%20using%20the%20KDL%20parser
 	// Calling robot_state_publisher as library: http://wiki.ros.org/robot_state_publisher/Tutorials/Using%20the%20robot%20state%20publisher%20on%20your%20own%20robot
 	robotStatePublisher.publishFixedTransforms( tf_prefix );
+	ROS_INFO_STREAM( "Publishing fixed transforms. prefix=" << tf_prefix );
 }
 
 int main( int argc, char *argv[] )
