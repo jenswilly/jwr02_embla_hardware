@@ -38,6 +38,7 @@ void controlLoop( embla_hardware::EmblaHardware &embla,
 		  controller_manager::ControllerManager &cm,
 		  time_source::time_point &last_time )
 {
+	ROS_INFO_STREAM( "Control loop run" );
 
 	// Calculate monotonic time difference
 	time_source::time_point this_time = time_source::now();
@@ -57,6 +58,7 @@ void controlLoop( embla_hardware::EmblaHardware &embla,
 */
 void diagnosticLoop( embla_hardware::EmblaHardware &embla )
 {
+	ROS_INFO_STREAM( "Diagnostics loop run" );
 	embla.updateDiagnostics();
 }
 
@@ -65,10 +67,11 @@ void diagnosticLoop( embla_hardware::EmblaHardware &embla )
  * */
 void staticTfLoop( robot_state_publisher::RobotStatePublisher &robotStatePublisher, std::string &tf_prefix )
 {
+	ROS_INFO_STREAM( "Publishing fixed transforms. prefix=" << tf_prefix );
+
 	// Reading KDL tree: http://wiki.ros.org/kdl_parser/Tutorials/Start%20using%20the%20KDL%20parser
 	// Calling robot_state_publisher as library: http://wiki.ros.org/robot_state_publisher/Tutorials/Using%20the%20robot%20state%20publisher%20on%20your%20own%20robot
 	robotStatePublisher.publishFixedTransforms( tf_prefix );
-	ROS_INFO_STREAM( "Publishing fixed transforms. prefix=" << tf_prefix );
 }
 
 int main( int argc, char *argv[] )
@@ -123,6 +126,7 @@ int main( int argc, char *argv[] )
 	ros::Timer diagnostic_loop = nh.createTimer( diagnostic_timer );
 
 	// Loop for robot_state_publisher static tf publishing
+	ros::Timer static_tf_loop;
 	if( publish_tf ) {
 		ROS_INFO( "Scheduling fixed tf publishing." );
 
@@ -130,7 +134,7 @@ int main( int argc, char *argv[] )
 			ros::Duration( 1 / static_tf_frequency ),
 			boost::bind( staticTfLoop, boost::ref( robotStatePublisher ), boost::ref( tf_prefix )),
 			&embla_queue );
-		ros::Timer static_tf_loop = nh.createTimer( static_tf_timer );
+		static_tf_loop = nh.createTimer( static_tf_timer );
 	} else {
 		ROS_INFO_STREAM( "NOT scheduling fixed tf publishing. publish_tf=" << publish_tf );
 	}
