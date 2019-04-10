@@ -85,11 +85,55 @@
         </rosparam>
 	</node>
 
-	<!-- Publish static transforms from URDF and updated transforms from joint states -->
-	<!-- Trouble with this one :( Sometime odom->base_footprint starts at != 0 and one wheel (left rear?) doesn't update. Consider moving to publishing dynamic and static transforms from hardware node (http://wiki.ros.org/robot_state_publisher/Tutorials/Using%20the%20robot%20state%20publisher%20on%20your%20own%20robot#Running_as_a_library) -->
-	<!-- Until fixed, run with 
-		rosrun robot_state_publisher robot_state_publisher -->
-	<!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen" /> -->
+
+<!-- IMU -->
+
+
+<!-- Sensor fusing -->
+<node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" clear_params="true">
+
+   <param name="frequency" value="10"/>
+   <param name="sensor_timeout" value="0.5"/>
+
+   <param name="two_d_mode" value="true"/>
+
+   <param name="map_frame" value="map"/>
+   <param name="odom_frame" value="odom_combined"/>
+   <param name="base_link_frame" value="base_footprint"/>
+   <param name="world_frame" value="odom_combined"/>
+
+   <param name="transform_time_offset" value="0.0"/>
+
+  <param name="odom0" value="odom"/>
+  <param name="imu0" value="imu_data"/>
+
+<!-- Fuse odom's X speed, Y speed, yaw rate -->
+  <rosparam param="odom0_config">[false, false, false,
+                                false, false, false,
+                                true, true, false,
+                                false, false, true,
+                                false, false, false]</rosparam>
+
+<!-- Fuse IMU's (absolute) yaw, yaw rate, X acceleration -->
+<rosparam param="imu0_config">[false, false, false,
+                               false, false, true,
+                               false, false, false,
+                               false, false, true,
+                               true, false, false]</rosparam>
+
+  <param name="odom0_differential" value="false"/>
+  <param name="imu0_differential" value="false"/>
+
+<!--
+  <param name="print_diagnostics" value="true"/>
+  <param name="debug"           value="false"/>
+  <param name="debug_out_file"  value="debug_ekf_localization.txt"/>
+-->
+
+  </rosparam>
+
+</node>
+
 
 	<!-- Launch rviz with: rosrun rviz rviz --> 
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find rplidar_ros)/rviz/rplidar.rviz" if="$(arg rviz)"/>
