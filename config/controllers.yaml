@@ -16,8 +16,8 @@ embla_velocity_controller:
   base_frame_id: base_footprint
 
   # Odometry fused with IMU is published by robot_localization, so no need to publish a TF based on encoders alone.
-  # --> robot_localization not implemented yet, so yes publish odom and tf. -JWJ
-  enable_odom_tf: true
+  # Set to true if _not_ using robot_localization and to false if using robot_localization -JWJ
+  enable_odom_tf: false
 
   # Roboclaw driver provides wheel velocities
   estimate_velocity_from_position: false

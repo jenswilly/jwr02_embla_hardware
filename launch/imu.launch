@@ -1,0 +1,21 @@
+<!-- IMU: mode:=custom gyroscope:=true accelerometer:=true heading:=true -->
+<arg name="imu_port" default="/dev/ttyACM0"/>
+<node pkg="vmu931_imu" type="vmu931_imu_node.py" name="imu">
+	<param name="port" value="$(arg port)"/>
+	<!-- Use quaternions and publish gyro and accelerometer data only -->
+	<param name="mode" value="custom" />
+	<param name="quaternion" value="true" />
+	<param name="gyroscope" value="true" />
+	<param name="accelerometer" value="true"/>
+
+	<param name="euler" value="false"/>
+	<param name="magnetometer" value="false" />
+	<param name="heading" value="false" />
+
+	<param name="frame_id" value="imu_link" />
+	
+	<!-- Covariance matrices for Imu message -->
+	<rosparam param="covariance_linear_acceleration">[0.0001875, 0.0, 0.0, 0.0, 0.0001786, 0.0, 0.0, 0.0, 0.0006504]</rosparam>
+	<rosparam param="covariance_angular_velocity">[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]</rosparam>
+	<rosparam param="covariance_orientation">[0.0000014, 0.0, 0.0, 0.0, 0.0000014, 0.0, 0.0, 0.0, 0.0000014]</rosparam>
+</node>
