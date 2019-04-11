@@ -3,7 +3,7 @@
 	<!-- IMU: mode:=custom gyroscope:=true accelerometer:=true heading:=true -->
 	<arg name="imu_port" default="/dev/imu"/>
 	<node pkg="vmu931_imu" type="vmu931_imu_node.py" name="imu">
-		<param name="port" value="$(arg port)"/>
+		<param name="port" value="$(arg imu_port)"/>
 		<!-- Use quaternions and publish gyro and accelerometer data only -->
 		<param name="mode" value="custom" />
 		<param name="quaternion" value="true" />

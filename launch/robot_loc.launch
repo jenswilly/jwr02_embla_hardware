@@ -10,28 +10,28 @@
 		<param name="world_frame" value="odom"/>
 		<param name="transform_time_offset" value="0.0"/>
 
-		<param name="odom0" value="odom"/>
-		<param name="imu0" value="data_raw"/>
+		<param name="odom0" value="/odom_in"/>
+		<param name="imu0" value="/imu/data_raw"/>
 
 		<!-- Fuse odom's X speed, Y speed, yaw rate -->
 		<rosparam param="odom0_config">[false, false, false,
-							false, false, false,
-							true, true, false,
-							false, false, true,
-							false, false, false]</rosparam>
+                                                false, false, false,
+                                                true, true, false,
+                                                false, false, true,
+                                                false, false, false]</rosparam>
 
-		<!-- Fuse IMU's (absolute) yaw, yaw rate, X acceleration -->
+		<!-- Fuse IMU's (absolute) yaw, yaw rate -->
 		<rosparam param="imu0_config">[false, false, false,
-							false, false, true,
-							false, false, false,
-							false, false, true,
-							true, false, false]</rosparam>
+                                               false, false, true,
+                                               false, false, false,
+                                               false, false, true,
+                                               false, false, false]</rosparam>
 
 		<param name="odom0_differential" value="false"/>
 		<param name="imu0_differential" value="false"/>
 
 		<param name="print_diagnostics" value="true"/>
-		<param name="debug" value="false"/>
+		<param name="debug" value="true"/>
 		<param name="debug_out_file" value="debug_ekf_localization.txt"/>
 	</node>
 </launch>
