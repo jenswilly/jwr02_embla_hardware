@@ -6,6 +6,9 @@
 	<!-- By default, IMU is launched. Run with imu:=false argument to disable IMU -->
 	<arg name="imu" default="true" />
 
+	<!-- By default, robot_localization is launched. Run with rob_loc:=false argument to disable robot_localization -->
+	<arg name="rob_loc" default="true" />
+
 	<!-- Not using Clearpath's cmd_vel_mux for now (but we should). SBUS output is remapped raw to cmd_vel -->
 	<remap from="/output/sbus/cmd_vel" to="/embla_velocity_controller/cmd_vel"/>
 
@@ -50,9 +53,9 @@
 		<param name="maxSpeed" value="1.0"/>
 		<param name="maxTurn" value="3.0"/>
 	</node>
-	
+
+	<!-- Diagnostics LED node -->	
 	<node pkg="embla_hardware" type="diagnostics_led" name="diagnostics_led" />
-	<!-- ^^ old stuff ­­­| new stuff vv  -->
 	
 	<!-- Load robot description -->
 	<param name="robot_description" command="$(find xacro)/xacro '$(find embla_description)/urdf/embla.xacro' --inorder"/>
@@ -91,51 +94,9 @@
 	<!-- IMU: include imu.launch -->
 	<include file="$(find embla_hardware)/launch/imu.launch" if="$(arg imu)" />
 
-<!-- Sensor fusing -->
-<node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" clear_params="true">
+	<!-- Sensor fusing -->
+	<include file="$(find embla_hardware)/launch/robot_loc.launch" if="$(arg rob_loc)" />
 
-   <param name="frequency" value="10"/>
-   <param name="sensor_timeout" value="0.5"/>
-
-   <param name="two_d_mode" value="true"/>
-
-   <param name="map_frame" value="map"/>
-   <param name="odom_frame" value="odom"/>
-   <param name="base_link_frame" value="base_footprint"/>
-   <param name="world_frame" value="odom"/>
-
-   <param name="transform_time_offset" value="0.0"/>
-
-  <param name="odom0" value="odom"/>
-  <param name="imu0" value="data_raw"/>
-
-<!-- Fuse odom's X speed, Y speed, yaw rate -->
-  <rosparam param="odom0_config">[false, false, false,
-                                false, false, false,
-                                true, true, false,
-                                false, false, true,
-                                false, false, false]</rosparam>
-
-<!-- Fuse IMU's (absolute) yaw, yaw rate, X acceleration -->
-<rosparam param="imu0_config">[false, false, false,
-                               false, false, true,
-                               false, false, false,
-                               false, false, true,
-                               true, false, false]</rosparam>
-
-  <param name="odom0_differential" value="false"/>
-  <param name="imu0_differential" value="false"/>
-
-  <param name="print_diagnostics" value="true"/>
-  <param name="debug"           value="false"/>
-  <param name="debug_out_file"  value="debug_ekf_localization.txt"/>
-
-
-  </rosparam>
-
-</node>
-
-
-	<!-- Launch rviz with: rosrun rviz rviz --> 
+	<!-- Launch rviz manually with: rosrun rviz rviz --> 
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find rplidar_ros)/rviz/rplidar.rviz" if="$(arg rviz)"/>
 </launch>
