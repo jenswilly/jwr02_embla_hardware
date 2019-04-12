@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- Remap to remove controller's prefix for /odom -->
+	<remap from="/embla_velocity_controller/odom" to="/odom_in"/>
+
+	<!-- Load robot description -->
+	<param name="robot_description" command="$(find xacro)/xacro '$(find embla_description)/urdf/embla.xacro' --inorder"/>
+
+	<!-- Load controller configuration -->
+	<rosparam command="load" file="$(find embla_hardware)/config/controllers.yaml"/>
+
+	<!-- Spawn controllers. Names must match names in control config file -->
+	<!-- <node name="base_controller_spawner" pkg="controller_manager" type="spawner" args="embla_joint_publisher embla_velocity_controller"/> -->
+
+	<!-- Harware driver -->
+	<node pkg="embla_hardware" type="embla_hardware_node" name="embla_hardware_node" output="screen">
+		<rosparam subst_value="true">
+            control_frequency: 10.0
+            diagnostic_frequency: 1.0
+            static_tf_frequency: 1.0
+            publish_tf: true
+            static_only: true
+
+            max_acceleration: 1
+            max_speed: 1
+            wheel_diameter: 0.08
+            pulses_per_rev: 3960
+            polling_timeout: 10.0
+        </rosparam>
+	</node>
+
+	<!-- Launch rviz manually with: rosrun rviz rviz -->
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find rplidar_ros)/rviz/rplidar.rviz" />
+</launch>

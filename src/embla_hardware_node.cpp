@@ -66,7 +66,7 @@ void staticTfLoop( robot_state_publisher::RobotStatePublisher &robotStatePublish
 {
 	// Reading KDL tree: http://wiki.ros.org/kdl_parser/Tutorials/Start%20using%20the%20KDL%20parser
 	// Calling robot_state_publisher as library: http://wiki.ros.org/robot_state_publisher/Tutorials/Using%20the%20robot%20state%20publisher%20on%20your%20own%20robot
-	robotStatePublisher.publishFixedTransforms( tf_prefix );
+	robotStatePublisher.publishFixedTransforms( tf_prefix, true );	// Experiment: use_tf_static=true
 }
 
 int main( int argc, char *argv[] )
@@ -76,13 +76,14 @@ int main( int argc, char *argv[] )
 
 	double control_frequency, diagnostic_frequency, static_tf_frequency;
 	std::string tf_prefix;
-	bool publish_tf;
+	bool publish_tf, static_only;
 
 	private_nh.param<double>( "control_frequency", control_frequency, 10.0 );
 	private_nh.param<double>( "diagnostic_frequency", diagnostic_frequency, 1.0 );
 	private_nh.param<double>( "static_tf_frequency", static_tf_frequency, 5.0 );
 	private_nh.param<std::string>( "tf_prefix", tf_prefix, std::string("") );
 	private_nh.param<bool>( "publish_tf", publish_tf, false );
+	private_nh.param<bool>( "static_only", static_only, false );
 
 	// Initialize robot state publisher
 	KDL::Tree tree;
@@ -94,10 +95,6 @@ int main( int argc, char *argv[] )
 	}
 	robot_state_publisher::RobotStatePublisher robotStatePublisher( tree );
 
-	// Initialize robot hardware and link to controller manager
-	embla_hardware::EmblaHardware embla( nh, private_nh, control_frequency, robotStatePublisher );
-	controller_manager::ControllerManager cm( &embla, nh );
-
 	// Setup separate queue and single-threaded spinner to process timer callbacks
 	// that interface with Husky hardware - libhorizon_legacy not threadsafe. This
 	// avoids having to lock around hardware access, but precludes realtime safety
@@ -106,19 +103,31 @@ int main( int argc, char *argv[] )
 	ros::AsyncSpinner embla_spinner( 1, &embla_queue );
 	time_source::time_point last_time = time_source::now();
 
-	// Control manager timer loop
-	ros::TimerOptions control_timer(
-		ros::Duration( 1 / control_frequency ),
-		boost::bind( controlLoop, boost::ref( embla ), boost::ref( cm ), boost::ref( last_time )),
-		&embla_queue );
-	ros::Timer control_loop = nh.createTimer( control_timer );
+	// Initialize robot hardware and link to controller manager. They are only instantiated if !static_only
+	embla_hardware::EmblaHardware *embla;
+	controller_manager::ControllerManager *cm;
+	ros::Timer control_loop;
+	ros::Timer diagnostic_loop;
 
-	// Diagnostics timer loop
-	ros::TimerOptions diagnostic_timer(
-		ros::Duration( 1 / diagnostic_frequency ),
-		boost::bind( diagnosticLoop, boost::ref( embla )),
-		&embla_queue );
-	ros::Timer diagnostic_loop = nh.createTimer( diagnostic_timer );
+	if( !static_only )
+	{
+		embla = new embla_hardware::EmblaHardware( nh, private_nh, control_frequency, robotStatePublisher );
+		cm = new controller_manager::ControllerManager( embla, nh );
+
+		// Control manager timer loop
+		ros::TimerOptions control_timer(
+			ros::Duration( 1 / control_frequency ),
+			boost::bind( controlLoop, boost::ref( *embla ), boost::ref( *cm ), boost::ref( last_time )),
+			&embla_queue );
+		control_loop = nh.createTimer( control_timer );
+
+		// Diagnostics timer loop
+		ros::TimerOptions diagnostic_timer(
+			ros::Duration( 1 / diagnostic_frequency ),
+			boost::bind( diagnosticLoop, boost::ref( *embla )),
+			&embla_queue );
+		diagnostic_loop = nh.createTimer( diagnostic_timer );
+	}
 
 	// Loop for robot_state_publisher static tf publishing
 	ros::Timer static_tf_loop;
