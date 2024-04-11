@@ -68,5 +68,7 @@
 		"typeindex": "cpp",
 		"variant": "cpp",
 		"vector": "cpp"
-	}
+	},
+	"cmake.configureOnOpen": false,
+	"editor.formatOnSave": true
 }

@@ -1,4 +1,34 @@
 <?xml version="1.0"?>
+<package format="3">
+	<name>embla_hardware</name>
+	<version>2.0.0</version>
+	<description>ROS 2 package for JWRobotics JWR-02 Embla robot with controller/driver/hardware interface and motor controller</description>
+	<maintainer email="jens@jwrobotics.com">Jens Willy Johannsen</maintainer>
+	<license>MIT</license>
+	<author email="jens@jwrobotics.com">Jens Willy Johannsen</author>
+
+	<buildtool_depend>ament_cmake</buildtool_depend>
+
+	<depend>rclcpp</depend>
+	<depend>std_msgs</depend>
+	<depend>geometry_msgs</depend>
+
+	<build_depend>rosidl_default_generators</build_depend>
+	<exec_depend>rosidl_default_runtime</exec_depend>
+	<member_of_group>rosidl_interface_packages</member_of_group>
+
+	<!-- More to come... -->
+
+	<exec_depend>ros2launch</exec_depend>
+
+	<export>
+		<build_type>ament_cmake</build_type>
+	</export>
+
+</package>
+
+<!-- OLD:
+<?xml version="1.0"?>
 <package format="2">
 	<name>embla_hardware</name>
 	<version>0.9.0</version>
@@ -40,3 +70,4 @@
 	<exec_depend>kdl_parser</exec_depend>
 	<exec_depend>robot_localization</exec_depend>
 </package>
+-->
