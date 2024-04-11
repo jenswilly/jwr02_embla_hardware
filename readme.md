@@ -1,3 +1,11 @@
+# :warning: Migration to ROS 2 in progress
+
+Do not attempt to compile this until this warning is gone. This is a work in progress..
+
+# TODO
+
+1. Do we been `boost-chrono`? It requires `sudo apt install libboost-all-dev`...
+
 # JWR-01 Embla Hardware Controller
 
 This code is based heavily on the hardware controller of the [Clearpath Husky robot](https://github.com/husky/husky). 🙇‍♂️ many thanks and heaps of streetcred to the [Clearpath team](https://www.clearpathrobotics.com/husky-unmanned-ground-vehicle-robot/).
@@ -11,9 +19,11 @@ Thirdly, 🙇‍♂️ many thanks to Carroll Vance for the [C++ version of the 
 This project (largely) follows the guidelines at http://geosoft.no/development/cppstyle.html.
 
 ## Controllers
+
 ...
 
 ## Diagnostics
+
 The `embla_hardware` contains a diagnostics updater that is updated from the `embla_hardware_node`'s `diagnosticsLoop()` function.
 
 The diagnostics updater is a `diagnostic_updater::DiagnosticTask` sublass and uses a `EmblaEMCUStatus` message to pass status.

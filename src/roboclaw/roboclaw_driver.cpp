@@ -24,7 +24,6 @@
 #include "roboclaw/roboclaw_driver.h"
 
 #include <boost/thread/mutex.hpp>
-// #include <boost/bind.hpp>
 #include <boost/array.hpp>
 #include <iomanip>
 
