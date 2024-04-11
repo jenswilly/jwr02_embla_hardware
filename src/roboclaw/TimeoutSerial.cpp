@@ -23,37 +23,41 @@
 #include <string>
 #include <algorithm>
 #include <iostream>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 using namespace std;
 using namespace boost;
+using namespace boost::placeholders;
 
-TimeoutSerial::TimeoutSerial() : io(), port( io ), timer( io ),
-	timeout( boost::posix_time::seconds( 0 )) {}
-
-TimeoutSerial::TimeoutSerial( const std::string& devname, unsigned int baud_rate,
-			      asio::serial_port_base::parity opt_parity,
-			      asio::serial_port_base::character_size opt_csize,
-			      asio::serial_port_base::flow_control opt_flow,
-			      asio::serial_port_base::stop_bits opt_stop )
-	: io(), port( io ), timer( io ), timeout( boost::posix_time::seconds( 0 ))
+TimeoutSerial::TimeoutSerial() : io(), port(io), timer(io),
+								 timeout(boost::posix_time::seconds(0))
 {
-	open( devname,baud_rate,opt_parity,opt_csize,opt_flow,opt_stop );
 }
 
-void TimeoutSerial::open( const std::string& devname, unsigned int baud_rate,
-			  asio::serial_port_base::parity opt_parity,
-			  asio::serial_port_base::character_size opt_csize,
-			  asio::serial_port_base::flow_control opt_flow,
-			  asio::serial_port_base::stop_bits opt_stop )
+TimeoutSerial::TimeoutSerial(const std::string &devname, unsigned int baud_rate,
+							 asio::serial_port_base::parity opt_parity,
+							 asio::serial_port_base::character_size opt_csize,
+							 asio::serial_port_base::flow_control opt_flow,
+							 asio::serial_port_base::stop_bits opt_stop)
+	: io(), port(io), timer(io), timeout(boost::posix_time::seconds(0))
 {
-	if( isOpen()) close();
-	port.open( devname );
-	port.set_option( asio::serial_port_base::baud_rate( baud_rate ));
-	port.set_option( opt_parity );
-	port.set_option( opt_csize );
-	port.set_option( opt_flow );
-	port.set_option( opt_stop );
+	open(devname, baud_rate, opt_parity, opt_csize, opt_flow, opt_stop);
+}
+
+void TimeoutSerial::open(const std::string &devname, unsigned int baud_rate,
+						 asio::serial_port_base::parity opt_parity,
+						 asio::serial_port_base::character_size opt_csize,
+						 asio::serial_port_base::flow_control opt_flow,
+						 asio::serial_port_base::stop_bits opt_stop)
+{
+	if (isOpen())
+		close();
+	port.open(devname);
+	port.set_option(asio::serial_port_base::baud_rate(baud_rate));
+	port.set_option(opt_parity);
+	port.set_option(opt_csize);
+	port.set_option(opt_flow);
+	port.set_option(opt_stop);
 }
 
 bool TimeoutSerial::isOpen() const
@@ -63,167 +67,180 @@ bool TimeoutSerial::isOpen() const
 
 void TimeoutSerial::close()
 {
-	if( isOpen()==false ) return;
+	if (isOpen() == false)
+		return;
 	port.close();
 }
 
-void TimeoutSerial::setTimeout( const boost::posix_time::time_duration& t )
+void TimeoutSerial::setTimeout(const boost::posix_time::time_duration &t)
 {
 	timeout = t;
 }
 
-void TimeoutSerial::write( const char *data, size_t size )
+void TimeoutSerial::write(const char *data, size_t size)
 {
-	asio::write( port,asio::buffer( data,size ));
+	asio::write(port, asio::buffer(data, size));
 }
 
-void TimeoutSerial::write( const std::vector<char>& data )
+void TimeoutSerial::write(const std::vector<char> &data)
 {
-	asio::write( port,asio::buffer( &data[0],data.size()));
+	asio::write(port, asio::buffer(&data[0], data.size()));
 }
 
-void TimeoutSerial::writeString( const std::string& s )
+void TimeoutSerial::writeString(const std::string &s)
 {
-	asio::write( port,asio::buffer( s.c_str(),s.size()));
+	asio::write(port, asio::buffer(s.c_str(), s.size()));
 }
 
-void TimeoutSerial::read( char *data, size_t size )
+void TimeoutSerial::read(char *data, size_t size)
 {
-	if( readData.size()>0 ) // If there is some data from a previous read
+	if (readData.size() > 0) // If there is some data from a previous read
 	{
-		istream is( &readData );
-		size_t toRead = min( readData.size(),size ); // How many bytes to read?
-		is.read( data,toRead );
+		istream is(&readData);
+		size_t toRead = min(readData.size(), size); // How many bytes to read?
+		is.read(data, toRead);
 		data += toRead;
 		size -= toRead;
-		if( size==0 ) return;  // If read data was enough, just return
+		if (size == 0)
+			return; // If read data was enough, just return
 	}
 
-	setupParameters = ReadSetupParameters( data,size );
-	performReadSetup( setupParameters );
+	setupParameters = ReadSetupParameters(data, size);
+	performReadSetup(setupParameters);
 
 	// For this code to work, there should always be a timeout, so the
 	// request for no timeout is translated into a very long timeout
-	if( timeout!=boost::posix_time::seconds( 0 )) timer.expires_from_now( timeout );
-	else timer.expires_from_now( boost::posix_time::hours( 100000 ));
+	if (timeout != boost::posix_time::seconds(0))
+		timer.expires_from_now(timeout);
+	else
+		timer.expires_from_now(boost::posix_time::hours(100000));
 
-	timer.async_wait( boost::bind( &TimeoutSerial::timeoutExpired,this,
-				       asio::placeholders::error ));
+	timer.async_wait(boost::bind(&TimeoutSerial::timeoutExpired, this, _1));
 
 	result = resultInProgress;
 	bytesTransferred = 0;
-	// Do we need io.reset() here? 
+	// Do we need io.reset() here?
 	// Docs say:
 	//	This function must be called prior to any second or later set of invocations of the run(), run_one(), poll() or poll_one() functions...
 	// And it does not seem to be called anywhere? -JWJ
-	io.reset();	// Added. -JWJ
+	io.reset(); // Added. -JWJ
 
-	for(;; )
+	for (;;)
 	{
 		io.run_one();
-		switch( result )
+		switch (result)
 		{
 		case resultSuccess:
 			timer.cancel();
 			return;
+
 		case resultTimeoutExpired:
 			port.cancel();
-			throw(timeout_exception( "Timeout expired" ));
+			throw(timeout_exception("Timeout expired"));
+
 		case resultError:
 			timer.cancel();
 			port.cancel();
-			throw(boost::system::system_error( boost::system::error_code(),
-							   "Error while reading" ));
+			throw(boost::system::system_error(boost::system::error_code(),
+											  "Error while reading"));
+
+		case resultInProgress:
 			// if resultInProgress remain in the loop
+			break;
 		}
 	}
 }
 
-std::vector<char> TimeoutSerial::read( size_t size )
+std::vector<char> TimeoutSerial::read(size_t size)
 {
-	vector<char> result( size,'\0' ); // Allocate a vector with the desired size
-	read( &result[0],size ); // Fill it with values
+	vector<char> result(size, '\0'); // Allocate a vector with the desired size
+	read(&result[0], size);			 // Fill it with values
 	return result;
 }
 
-std::string TimeoutSerial::readString( size_t size )
+std::string TimeoutSerial::readString(size_t size)
 {
-	string result( size,'\0' ); // Allocate a string with the desired size
-	read( &result[0],size ); // Fill it with values
+	string result(size, '\0'); // Allocate a string with the desired size
+	read(&result[0], size);	   // Fill it with values
 	return result;
 }
 
-std::string TimeoutSerial::readStringUntil( const std::string& delim )
+std::string TimeoutSerial::readStringUntil(const std::string &delim)
 {
 	// Note: if readData contains some previously read data, the call to
 	// async_read_until (which is done in performReadSetup) correctly handles
 	// it. If the data is enough it will also immediately call readCompleted()
-	setupParameters = ReadSetupParameters( delim );
-	performReadSetup( setupParameters );
+	setupParameters = ReadSetupParameters(delim);
+	performReadSetup(setupParameters);
 
 	// For this code to work, there should always be a timeout, so the
 	// request for no timeout is translated into a very long timeout
-	if( timeout!=boost::posix_time::seconds( 0 )) timer.expires_from_now( timeout );
-	else timer.expires_from_now( boost::posix_time::hours( 100000 ));
+	if (timeout != boost::posix_time::seconds(0))
+		timer.expires_from_now(timeout);
+	else
+		timer.expires_from_now(boost::posix_time::hours(100000));
 
-	timer.async_wait( boost::bind( &TimeoutSerial::timeoutExpired,this,
-				       asio::placeholders::error ));
+	timer.async_wait(boost::bind(&TimeoutSerial::timeoutExpired, this, _1));
 
 	result = resultInProgress;
 	bytesTransferred = 0;
-	for(;; )
+	for (;;)
 	{
 		io.run_one();
-		switch( result )
+		switch (result)
 		{
 		case resultSuccess:
 		{
 			timer.cancel();
 			bytesTransferred -= delim.size(); // Don't count delim
-			istream is( &readData );
-			string result( bytesTransferred,'\0' ); // Alloc string
-			is.read( &result[0],bytesTransferred ); // Fill values
-			is.ignore( delim.size()); // Remove delimiter from stream
+			istream is(&readData);
+			string result(bytesTransferred, '\0'); // Alloc string
+			is.read(&result[0], bytesTransferred); // Fill values
+			is.ignore(delim.size());			   // Remove delimiter from stream
 			return result;
 		}
+
 		case resultTimeoutExpired:
 			port.cancel();
-			throw(timeout_exception( "Timeout expired" ));
+			throw(timeout_exception("Timeout expired"));
+
 		case resultError:
 			timer.cancel();
 			port.cancel();
-			throw(boost::system::system_error( boost::system::error_code(),
-							   "Error while reading" ));
+			throw(boost::system::system_error(boost::system::error_code(),
+											  "Error while reading"));
+
+		case resultInProgress:
 			// if resultInProgress remain in the loop
+			break;
 		}
 	}
 }
 
 TimeoutSerial::~TimeoutSerial() {}
 
-void TimeoutSerial::performReadSetup( const ReadSetupParameters& param )
+void TimeoutSerial::performReadSetup(const ReadSetupParameters &param)
 {
-	if( param.fixedSize )
+	if (param.fixedSize)
 	{
-		asio::async_read( port,asio::buffer( param.data,param.size ),boost::bind(
-					  &TimeoutSerial::readCompleted,this,asio::placeholders::error,
-					  asio::placeholders::bytes_transferred ));
-	} else {
-		asio::async_read_until( port,readData,param.delim,boost::bind(
-						&TimeoutSerial::readCompleted,this,asio::placeholders::error,
-						asio::placeholders::bytes_transferred ));
+		asio::async_read(port, asio::buffer(param.data, param.size), boost::bind(&TimeoutSerial::readCompleted, this, _1, _2));
+	}
+	else
+	{
+		asio::async_read_until(port, readData, param.delim, boost::bind(&TimeoutSerial::readCompleted, this, _1, _2));
 	}
 }
 
-void TimeoutSerial::timeoutExpired( const boost::system::error_code& error )
+void TimeoutSerial::timeoutExpired(const boost::system::error_code &error)
 {
-	if( !error && result==resultInProgress ) result = resultTimeoutExpired;
+	if (!error && result == resultInProgress)
+		result = resultTimeoutExpired;
 }
 
-void TimeoutSerial::readCompleted( const boost::system::error_code& error,
-				   const size_t bytesTransferred )
+void TimeoutSerial::readCompleted(const boost::system::error_code &error,
+								  const size_t bytesTransferred)
 {
-	if( !error )
+	if (!error)
 	{
 		result = resultSuccess;
 		this->bytesTransferred = bytesTransferred;
@@ -233,17 +250,19 @@ void TimeoutSerial::readCompleted( const boost::system::error_code& error,
 	// In case a asynchronous operation is cancelled due to a timeout,
 	// each OS seems to have its way to react.
 #ifdef _WIN32
-	if( error.value()==995 ) return;  // Windows spits out error 995
+	if (error.value() == 995)
+		return; // Windows spits out error 995
 #elif defined(__APPLE__)
-	if( error.value()==45 )
+	if (error.value() == 45)
 	{
 		// Bug on OS X, it might be necessary to repeat the setup
 		// http://osdir.com/ml/lib.boost.asio.user/2008-08/msg00004.html
-		performReadSetup( setupParameters );
+		performReadSetup(setupParameters);
 		return;
 	}
 #else // Linux
-	if( error.value()==125 ) return;  // Linux outputs error 125
+	if (error.value() == 125)
+		return; // Linux outputs error 125
 #endif
 
 	result = resultError;

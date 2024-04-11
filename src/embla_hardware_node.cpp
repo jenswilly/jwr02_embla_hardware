@@ -152,7 +152,7 @@ int main( int argc, char *argv[] )
 class EmblaHardwareNode : public rclcpp::Node
 {
 public:
-	EmblaHardware() : Node("embla_hardware")
+	EmblaHardwareNode() : Node("embla_hardware")
 	{
 		RCLCPP_INFO(this->get_logger(), "EmblaHardware constructor");
 	}

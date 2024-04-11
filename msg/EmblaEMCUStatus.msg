@@ -1,5 +1,5 @@
 # EMCU diagnostics message
-Header header
+std_msgs/Header header
 
 # Value from Roboclaw's Read Status command
 uint32 status

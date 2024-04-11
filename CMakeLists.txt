@@ -13,17 +13,19 @@ endif()
 # Find and dependencies for all node executables
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(Boost REQUIRED COMPONENTS chrono system)
 
 set(common_dependencies "rclcpp" "geometry_msgs" "Boost")
 
-include_directories(include/embla_hardware include/roboclaw)
+include_directories(include/embla_hardware include/roboclaw include)
 
 # Generate interfaces
 find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EmblaEMCUStatus.msg"
+  DEPENDENCIES std_msgs
 )
 
 # Library: roboclaw (used in embla_hardware_node)
@@ -31,7 +33,7 @@ add_library(roboclaw src/roboclaw/roboclaw_driver.cpp src/roboclaw/TimeoutSerial
 
 # Add executable and link dependencies
 add_executable(embla_hardware_node src/embla_hardware_node.cpp)
-ament_target_dependencies(rplidar_publisher ${common_dependencies})
+ament_target_dependencies(embla_hardware_node ${common_dependencies})
 
 # Add custom types
 rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
