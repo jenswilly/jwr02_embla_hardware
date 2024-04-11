@@ -28,16 +28,13 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   DEPENDENCIES std_msgs
 )
 
-# Library: roboclaw (used in embla_hardware_node)
-add_library(roboclaw src/roboclaw/roboclaw_driver.cpp src/roboclaw/TimeoutSerial.cpp)
-
 # Add executable and link dependencies
-add_executable(embla_hardware_node src/embla_hardware_node.cpp)
+add_executable(embla_hardware_node src/embla_hardware_node.cpp src/roboclaw/roboclaw_driver.cpp src/roboclaw/TimeoutSerial.cpp)
 ament_target_dependencies(embla_hardware_node ${common_dependencies})
 
 # Add custom types
 rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
-target_link_libraries(embla_hardware_node "${cpp_typesupport_target}" roboclaw)
+target_link_libraries(embla_hardware_node "${cpp_typesupport_target}")
 
 # Install executables in lib
 install(
