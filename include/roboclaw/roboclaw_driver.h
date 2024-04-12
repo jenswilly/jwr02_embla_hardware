@@ -51,7 +51,7 @@ namespace roboclaw
 		double get_logic_voltage(unsigned char address);
 		double get_temperature1(unsigned char address);
 		std::pair<double, double> get_currents(unsigned char address);
-		void driver::drive_M1_position(unsigned char address, uint32_t position);
+		void drive_M1_position(unsigned char address, uint32_t position);
 
 		static unsigned char BASE_ADDRESS;
 		static unsigned int DEFAULT_BAUDRATE;

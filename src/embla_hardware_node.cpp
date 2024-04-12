@@ -32,6 +32,7 @@
 // #include <kdl_parser/kdl_parser.hpp>
 #include <boost/chrono.hpp>
 #include "geometry_msgs/msg/twist.hpp"
+#include "std_srvs/srv/empty.hpp"
 
 typedef boost::chrono::steady_clock time_source;
 #if 0
@@ -182,7 +183,7 @@ public:
 		cmd_vel_sub_ = this->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", 10, std::bind(&EmblaHardwareNode::CmdVelCallback, this, std::placeholders::_1));
 
 		// TEST service callback
-		testService_ = this->create_service<std_srvs::srv::Empty>("roboclaw_test", std::bind(&RplidarNode::testServiceCallback, this, std::placeholders::_1, std::placeholders::_2));
+		testService_ = this->create_service<std_srvs::srv::Empty>("roboclaw_test", std::bind(&EmblaHardwareNode::testServiceCallback, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 private:
