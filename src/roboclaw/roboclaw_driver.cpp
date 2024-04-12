@@ -36,7 +36,8 @@ namespace roboclaw
 	driver::driver(std::string port, unsigned int baudrate)
 	{
 		serial = std::shared_ptr<TimeoutSerial>(new TimeoutSerial(port, baudrate));
-		serial->setTimeout(boost::posix_time::milliseconds(200));
+		//		serial->setTimeout(boost::posix_time::milliseconds(200));
+		serial->setTimeout(boost::posix_time::milliseconds(10000));
 	}
 
 	void driver::crc16_reset()
