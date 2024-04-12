@@ -346,13 +346,14 @@ namespace roboclaw
 	void driver::drive_M1_position(unsigned char address, uint32_t position)
 	{
 		unsigned char rx_buffer[1];
-		unsigned char tx_buffer[4];
+		unsigned char tx_buffer[5];
 
 		// RoboClaw expects big endian / MSB first
 		tx_buffer[0] = (unsigned char)((position >> 24) & 0xFF);
 		tx_buffer[1] = (unsigned char)((position >> 16) & 0xFF);
 		tx_buffer[2] = (unsigned char)((position >> 8) & 0xFF);
 		tx_buffer[3] = (unsigned char)(position & 0xFF);
+		tx_buffer[4] = 0; // Buffer: 0=add command to buffer, 1=execute immediately
 
 		txrx(address, 119, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false);
 	}
