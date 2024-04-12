@@ -160,8 +160,8 @@ public:
 						  roboclaw_("/dev/roboclaw", 460800),
 						  wheel_diameter_(0.08),
 						  max_accel_(1),
-						  max_linear_velocity_(1),
-						  max_angular_velocity_(1),
+						  max_linear_velocity_(0.05),
+						  max_angular_velocity_(0.05),
 						  polling_timeout_(10),
 						  pulsesPerRev_(3960),
 						  wheel_separation_(0.185)
@@ -226,6 +226,7 @@ private:
 			const int32_t m2_quad_pulses_per_second = m2_desired_velocity * pulsesPerMeter_;
 
 			roboclaw_.set_velocity(0x80, std::pair<int32_t, int32_t>(m1_quad_pulses_per_second, m2_quad_pulses_per_second));
+			RCLCPP_INFO(this->get_logger(), "Velocity set: %d, %d", m1_quad_pulses_per_second, m2_quad_pulses_per_second);
 		}
 	}
 
