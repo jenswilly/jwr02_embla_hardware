@@ -120,7 +120,7 @@ namespace roboclaw
 		unsigned char *response = (unsigned char *)&response_vector[0];
 
 		if (bytes_received != want_bytes)
-			throw timeout_exception("Timeout reading from RoboClaw");
+			throw timeout_exception("Timeout reading from RoboClaw. Expected %d bytes, got %d", want_bytes, bytes_received);
 
 		// Check CRC
 		if (rx_crc)
@@ -353,7 +353,7 @@ namespace roboclaw
 		tx_buffer[1] = (unsigned char)((position >> 16) & 0xFF);
 		tx_buffer[2] = (unsigned char)((position >> 8) & 0xFF);
 		tx_buffer[3] = (unsigned char)(position & 0xFF);
-		tx_buffer[4] = 0; // Buffer: 0=add command to buffer, 1=execute immediately
+		tx_buffer[4] = (unsigned char)1; // Buffer: 0=add command to buffer, 1=execute immediately
 
 		txrx(address, 119, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false);
 	}
