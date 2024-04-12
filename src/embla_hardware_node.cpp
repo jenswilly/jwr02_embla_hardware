@@ -234,6 +234,9 @@ private:
 	 */
 	void testServiceCallback(const std_srvs::srv::Empty::Request::SharedPtr request, std_srvs::srv::Empty::Response::SharedPtr response)
 	{
+		std::ignore = request;
+		std::ignore = response;
+
 		RCLCPP_INFO(this->get_logger(), "Received test service request");
 
 		std::pair<int, int> encoders = roboclaw_.get_encoders(0x80);
