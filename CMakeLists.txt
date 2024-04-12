@@ -14,10 +14,11 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(Boost REQUIRED COMPONENTS chrono system)
 
-set(common_dependencies "rclcpp" "geometry_msgs" "Boost")
+set(common_dependencies "rclcpp" "geometry_msgs" "Boost" "std_msgs" "std_srvs")
 
 include_directories(include/embla_hardware include/roboclaw include)
 

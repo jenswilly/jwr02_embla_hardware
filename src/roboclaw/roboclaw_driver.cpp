@@ -342,6 +342,22 @@ namespace roboclaw
 		txrx(address, 37, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false);
 	}
 
+	// -------- TESTING
+	void driver::drive_M1_position(unsigned char address, uint32_t position)
+	{
+		unsigned char rx_buffer[1];
+		unsigned char tx_buffer[4];
+
+		// RoboClaw expects big endian / MSB first
+		tx_buffer[0] = (unsigned char)((position >> 24) & 0xFF);
+		tx_buffer[1] = (unsigned char)((position >> 16) & 0xFF);
+		tx_buffer[2] = (unsigned char)((position >> 8) & 0xFF);
+		tx_buffer[3] = (unsigned char)(position & 0xFF);
+
+		txrx(address, 119, tx_buffer, sizeof(tx_buffer), rx_buffer, sizeof(rx_buffer), true, false);
+	}
+	// -------- end-TESTING
+
 	void driver::set_duty(unsigned char address, std::pair<int, int> duty)
 	{
 		unsigned char rx_buffer[1];

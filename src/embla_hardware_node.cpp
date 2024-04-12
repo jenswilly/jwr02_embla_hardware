@@ -180,6 +180,9 @@ public:
 
 		// Subscribe to cmd_vel messages
 		cmd_vel_sub_ = this->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", 10, std::bind(&EmblaHardwareNode::CmdVelCallback, this, std::placeholders::_1));
+
+		// TEST service callback
+		testService_ = this->create_service<std_srvs::srv::Empty>("roboclaw_test", std::bind(&RplidarNode::testServiceCallback, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 private:
@@ -193,6 +196,7 @@ private:
 	double pulsesPerRev_;
 	double wheel_separation_;
 	double pulsesPerMeter_;
+	rclcpp::Service<std_srvs::srv::Empty>::SharedPtr testService_;
 
 	/**
 	 * Callback for cmd_vel messages
@@ -222,6 +226,26 @@ private:
 
 			roboclaw_.set_velocity(0x80, std::pair<int32_t, int32_t>(m1_quad_pulses_per_second, m2_quad_pulses_per_second));
 		}
+	}
+
+	/**
+	 * Callback for test service
+	 */
+	void testServiceCallback(const std_srvs::srv::Empty::Request::SharedPtr request, std_srvs::srv::Empty::Response::SharedPtr response)
+	{
+		RCLCPP_INFO(this->get_logger(), "Received test service request");
+
+		std::pair<int, int> encoders = roboclaw_.get_encoders(0x80);
+		RCLCPP_INFO(this->get_logger(), "Encoders before reset: %d, %d", encoders.first, encoders.second);
+
+		roboclaw_.reset_encoders(0x80);
+		encoders = roboclaw_.get_encoders(0x80);
+		RCLCPP_INFO(this->get_logger(), "Encoders after reset: %d, %d", encoders.first, encoders.second);
+
+		roboclaw_.drive_M1_position(0x80, 1000);
+		encoders = roboclaw_.get_encoders(0x80);
+
+		RCLCPP_INFO(this->get_logger(), "Encoders: %d, %d", encoders.first, encoders.second);
 	}
 };
 
