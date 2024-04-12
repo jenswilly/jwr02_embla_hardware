@@ -120,7 +120,11 @@ namespace roboclaw
 		unsigned char *response = (unsigned char *)&response_vector[0];
 
 		if (bytes_received != want_bytes)
-			throw timeout_exception("Timeout reading from RoboClaw. Expected %d bytes, got %d", want_bytes, bytes_received);
+		{
+			std::ostringstream oss;
+			oss << "Timeout reading from RoboClaw. Expected " << want_bytes << ", got " << bytes_received;
+			throw timeout_exception(oss.str());
+		}
 
 		// Check CRC
 		if (rx_crc)
